@@ -502,26 +502,26 @@ input{-webkit-tap-highlight-color:transparent;}
 .fire-btn:active{transform:scale(.97);}
 
 /* ========================================
-   POWER-UPS (Fixed for Mobile Clickability)
+   POWER-UPS
 ======================================== */
 .pups{
   display:flex;gap:5px;width:100%;
   flex-shrink:0;
   position:relative;
-  z-index:10; /* Ensures it sits above other background layers */
+  z-index:10;
   padding-bottom: max(10px, env(safe-area-inset-bottom));
 }
 .pup{
   flex:1;background:rgba(0,255,65,.025);
   border:1px solid rgba(0,255,65,.18);
-  color:var(--g);padding:10px 4px; /* Increased padding for better touch target */
+  color:var(--g);padding:10px 4px;
   font-family:var(--font2);font-size:clamp(.65rem,2vw,.75rem);
   letter-spacing:1px;text-transform:uppercase;
   font-weight:bold;text-align:center;transition:.2s;
   cursor:pointer;
 }
 .pup:hover:not(:disabled){background:rgba(0,255,65,.09);border-color:var(--g);box-shadow:var(--sg);}
-.pup:disabled{opacity:.35;cursor:not-allowed;}
+.pup:disabled{opacity:.35;cursor:not-allowed;background:rgba(0,0,0,0.5);}
 .pup .pi{font-size:1rem;display:block;margin-bottom:2px;}
 #btn-hint{border-color:rgba(0,229,255,.25);color:var(--b);}
 #btn-hint:hover:not(:disabled){background:rgba(0,229,255,.08);border-color:var(--b);box-shadow:var(--sb);}
@@ -1152,6 +1152,7 @@ const SFX=(()=>{
     lowtime(){tone(440,'square',.08,.1);},
     item(){tone(700,'triangle',.1,.11);tone(900,'sine',.15,.09,.05);},
     join(){tone(660,'sine',.1,.12);tone(880,'sine',.12,.1,.07);},
+    ctx: ()=> ctx
   };
 })();
 
@@ -1160,6 +1161,18 @@ document.getElementById('snd-btn').addEventListener('click',e=>{
   const m=SFX.toggle();
   e.target.textContent=m?'🔇 OFF':'🔊 ON';
 });
+
+/* ─── UNLOCK AUDIO FOR MOBILE ───────────────────────────── */
+// มือถือบังคับให้ต้องมีการสัมผัสหน้าจอก่อนถึงจะอนุญาตให้เล่นเสียงได้
+const unlockAudio = () => {
+  SFX.init();
+  if (SFX.ctx() && SFX.ctx().state === 'suspended') {
+    SFX.ctx().resume();
+  }
+  ['touchstart', 'touchend', 'click', 'keydown'].forEach(e => document.body.removeEventListener(e, unlockAudio));
+};
+['touchstart', 'touchend', 'click', 'keydown'].forEach(e => document.body.addEventListener(e, unlockAudio, {once:true}));
+
 
 /* ─── PARTICLES ─────────────────────────────────────────── */
 const PC=document.getElementById('particles');
@@ -1330,7 +1343,11 @@ const G={
     const cfg=timeMap[this.selectedTime]||timeMap[60];
     this.winScore=cfg.win;this.defaultItems=cfg.items;
     this.score=0;this.hp=100;this.timer=this.selectedTime;this.combo=0;
-    this.sessionHistory=[];this.isPlaying=false;this.lowTimePlayed=false;
+    this.sessionHistory=[];
+    
+    // ตั้งค่าตัวแปรเริ่มต้นให้หยุดเกมไว้ก่อนชั่วคราว
+    this.isPlaying=false;
+    this.lowTimePlayed=false;
     this.hints=cfg.items;this.potions=cfg.items;this.skips=cfg.items;
 
     let pool=modeKey==='SURVIVAL'
@@ -1346,13 +1363,17 @@ const G={
 
     document.getElementById('hud-name').textContent=this.playerName;
     document.getElementById('live-sb').style.display='none';
+    
+    // เคลียร์ UI ให้สะอาดก่อน
     this._updateHUD();
-    this._updatePups();
     document.getElementById('hint-line').textContent='';
 
     showScene('s-game');
+    
+    // สั่งเริ่มเกมหลังจาก Animation โหลดเสร็จ
     setTimeout(()=>{
-      this.isPlaying=true;
+      this.isPlaying=true;  // เริ่มเล่นแล้วนะ
+      this._updatePups();   // <-- [FIX 1] ย้ายมาอัปเดตไอเทมตรงนี้ ปุ่มจะได้ไม่ล็อค!!
       this._nextQ();
       this._startTimer();
       document.getElementById('ans-inp').focus();
@@ -1543,6 +1564,8 @@ const G={
     document.getElementById('btn-potion').innerHTML=`<span class="pi">💊</span>HP(${potions})`;
     document.getElementById('btn-hint').innerHTML=`<span class="pi">💡</span>HINT(${hints})`;
     document.getElementById('btn-skip').innerHTML=`<span class="pi">⏩</span>SKIP(${skips})`;
+    
+    // ตั้งค่า disabled เฉพาะตอนที่ของหมด หรือยังไม่เริ่มเกม
     document.getElementById('btn-potion').disabled=!this.isPlaying||potions<=0;
     document.getElementById('btn-hint').disabled=!this.isPlaying||hints<=0;
     document.getElementById('btn-skip').disabled=!this.isPlaying||skips<=0;
@@ -1573,7 +1596,6 @@ const MP={
 
   connect(){
     if(this.socket&&this.socket.connected)return;
-    // Connect to same origin
     this.socket=io({transports:['websocket','polling']});
     this.myId=null;
     this._bindEvents();
@@ -1815,7 +1837,6 @@ function createRoom(){
   MP.myName=n.toUpperCase().slice(0,12);
   MP.connect();
   const t=getSelectedTime();
-  // อัปเดตเมนูเลือกให้มีครบ 8 หมวด
   _showModePickerForMP((mode)=>{
     MP.socket.emit('create_room',{playerName:MP.myName,mode,timeLimit:t});
   });
@@ -1834,7 +1855,6 @@ function joinRoom(){
   },300);
 }
 
-// Quick mode picker modal (อัปเดตเพิ่มหมวดใหม่)
 function _showModePickerForMP(cb){
   const ol=document.createElement('div');
   ol.style.cssText=`position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.85);display:flex;justify-content:center;align-items:center;padding:20px;`;
