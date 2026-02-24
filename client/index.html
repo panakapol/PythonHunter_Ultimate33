@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>PYTHON HUNTER v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ========================================
+   RESET & VARIABLES
+======================================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --g: #00ff41;
+  --r: #ff2d5b;
+  --b: #00e5ff;
+  --y: #ffe500;
+  --p: #c850ff;
+  --o: #ff7b00;
+  --gold: #ffd700;
+  --bg: #020508;
+  --panel: rgba(0,255,65,.04);
+  --panelb: rgba(0,229,255,.05);
+  --border: rgba(0,255,65,.2);
+  --dim: #3a6b4a;
+  --glass: rgba(2,8,5,.93);
+  --font1: 'Orbitron',monospace;
+  --font2: 'Share Tech Mono',monospace;
+  --font3: 'Rajdhani',sans-serif;
+  --sg: 0 0 6px #00ff41,0 0 20px rgba(0,255,65,.35);
+  --sr: 0 0 6px #ff2d5b,0 0 20px rgba(255,45,91,.35);
+  --sb: 0 0 6px #00e5ff,0 0 20px rgba(0,229,255,.35);
+  --sy: 0 0 6px #ffe500,0 0 20px rgba(255,229,0,.35);
+}
+html{height:100%;overscroll-behavior:none;}
+body{
+  background:var(--bg);
+  color:var(--g);
+  font-family:var(--font2);
+  height:100dvh;
+  width:100vw;
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  position:relative;
+  -webkit-tap-highlight-color:transparent;
+}
+button{-webkit-tap-highlight-color:transparent;user-select:none;cursor:pointer;}
+input{-webkit-tap-highlight-color:transparent;}
+
+/* ========================================
+   BACKGROUND FX
+======================================== */
+#bg-canvas{position:fixed;inset:0;z-index:0;opacity:.12;}
+.bg-grid{
+  position:fixed;inset:0;z-index:1;
+  background-image:linear-gradient(rgba(0,255,65,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,65,.03) 1px,transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;
+}
+.bg-vig{
+  position:fixed;inset:0;z-index:2;
+  background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.88) 100%);
+  pointer-events:none;
+}
+.scanlines{
+  position:fixed;inset:0;z-index:3;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);
+  pointer-events:none;
+}
+#particles{position:fixed;inset:0;z-index:60;pointer-events:none;overflow:hidden;}
+
+/* ========================================
+   APP WRAPPER
+======================================== */
+#app{
+  position:relative;z-index:100;
+  width:100%;max-width:820px;
+  height:100dvh;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  padding:8px 12px;
+  overflow:hidden;
+}
+
+/* ========================================
+   SCENES
+======================================== */
+.scene{
+  display:none;width:100%;height:100%;
+  overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+.scene::-webkit-scrollbar{width:3px;}
+.scene::-webkit-scrollbar-thumb{background:var(--border);}
+.scene.on{
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  animation:scIn .3s cubic-bezier(.16,1,.3,1);
+}
+.scene.scroll-scene.on{
+  display:block;
+  animation:scIn .3s ease;
+}
+@keyframes scIn{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* ========================================
+   SOUND TOGGLE
+======================================== */
+#snd-btn{
+  position:fixed;top:10px;right:10px;z-index:999;
+  background:var(--glass);border:1px solid var(--border);
+  color:var(--g);padding:6px 12px;
+  font-family:var(--font2);font-size:.7rem;letter-spacing:1px;
+  transition:.2s;
+}
+#snd-btn:hover{box-shadow:var(--sg);background:rgba(0,255,65,.1);}
+
+/* ========================================
+   TYPOGRAPHY
+======================================== */
+.title{
+  font-family:var(--font1);
+  font-size:clamp(2rem,7vw,3.8rem);
+  font-weight:900;letter-spacing:4px;
+  color:var(--g);text-shadow:var(--sg);
+  text-transform:uppercase;
+  position:relative;
+  line-height:1;
+  margin-bottom:4px;
+}
+.title::before,.title::after{
+  content:attr(data-t);
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+}
+.title::before{
+  color:var(--r);
+  clip-path:polygon(0 20%,100% 20%,100% 50%,0 50%);
+  animation:glitch1 4s infinite;opacity:.7;
+}
+.title::after{
+  color:var(--b);
+  clip-path:polygon(0 60%,100% 60%,100% 80%,0 80%);
+  animation:glitch2 4s infinite;opacity:.5;
+}
+@keyframes glitch1{0%,88%,100%{transform:translate(0);}90%{transform:translate(-3px,1px);}93%{transform:translate(3px,-1px);}}
+@keyframes glitch2{0%,91%,100%{transform:translate(0);}93%{transform:translate(2px,-2px);}96%{transform:translate(-2px,2px);}}
+.sub{
+  font-family:var(--font3);color:var(--b);
+  letter-spacing:5px;font-size:clamp(.65rem,2vw,.85rem);
+  text-transform:uppercase;margin-bottom:18px;opacity:.8;
+}
+
+/* ========================================
+   PANEL / CARD
+======================================== */
+.panel{
+  width:100%;
+  background:var(--glass);
+  border:1px solid var(--border);
+  padding:clamp(14px,3vw,24px);
+  position:relative;
+  backdrop-filter:blur(6px);
+  box-shadow:inset 0 0 40px rgba(0,255,65,.02),0 20px 60px rgba(0,0,0,.5);
+}
+.panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--g),transparent);
+  opacity:.5;
+}
+
+/* ========================================
+   INPUTS
+======================================== */
+.lbl{
+  font-family:var(--font3);color:var(--b);
+  font-size:.75rem;letter-spacing:2px;
+  text-transform:uppercase;display:block;
+  margin-bottom:6px;font-weight:600;
+}
+.inp{
+  background:rgba(0,255,65,.03);
+  border:1px solid var(--border);
+  border-bottom:2px solid var(--g);
+  color:#fff;padding:11px 14px;
+  width:100%;font-family:var(--font2);
+  font-size:clamp(.95rem,3vw,1.2rem);
+  text-transform:uppercase;letter-spacing:3px;
+  text-align:center;outline:none;transition:.2s;
+}
+.inp:focus{background:rgba(0,255,65,.06);box-shadow:var(--sg);}
+.inp::placeholder{color:var(--dim);font-size:.8rem;letter-spacing:2px;}
+.inp-sm{font-size:.9rem;padding:9px 12px;letter-spacing:2px;}
+
+/* ========================================
+   BUTTONS
+======================================== */
+.btn{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--g);
+  padding:10px 18px;
+  font-family:var(--font2);
+  font-size:clamp(.7rem,2vw,.82rem);
+  font-weight:bold;letter-spacing:2px;
+  text-transform:uppercase;transition:.15s;
+  position:relative;overflow:hidden;
+}
+.btn::after{
+  content:'';position:absolute;
+  top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(0,255,65,.1),transparent);
+  transition:left .35s;
+}
+.btn:hover::after{left:100%;}
+.btn:hover{background:rgba(0,255,65,.1);border-color:var(--g);box-shadow:var(--sg);color:#fff;transform:translateY(-1px);}
+.btn:active{transform:scale(.98);}
+.btn-lg{
+  width:100%;font-family:var(--font1);
+  font-size:clamp(.85rem,2.5vw,1.1rem);
+  padding:15px;letter-spacing:3px;
+  border-color:var(--g);margin-top:10px;
+  clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
+}
+.btn-red{border-color:rgba(255,45,91,.4);color:var(--r);animation:rpulse 2.5s infinite;}
+.btn-red:hover{background:rgba(255,45,91,.15);border-color:var(--r);box-shadow:var(--sr);color:#fff;}
+.btn-blue{border-color:rgba(0,229,255,.3);color:var(--b);}
+.btn-blue:hover{background:rgba(0,229,255,.1);border-color:var(--b);box-shadow:var(--sb);}
+.btn-gold{border-color:rgba(255,215,0,.35);color:var(--gold);}
+.btn-gold:hover{background:rgba(255,215,0,.1);border-color:var(--gold);box-shadow:var(--sy);}
+@keyframes rpulse{0%,100%{box-shadow:0 0 8px rgba(255,45,91,.2);}50%{box-shadow:0 0 25px rgba(255,45,91,.45);}}
+
+/* ========================================
+   TIME SELECTOR
+======================================== */
+.time-row{display:flex;gap:8px;margin-bottom:14px;}
+.t-btn{
+  flex:1;background:rgba(0,255,65,.03);
+  border:1px solid rgba(0,255,65,.15);
+  color:var(--dim);padding:12px 6px;
+  font-family:var(--font1);font-size:clamp(.75rem,2.5vw,.95rem);
+  font-weight:700;letter-spacing:1px;transition:.2s;
+}
+.t-btn:hover{border-color:var(--g);color:var(--g);background:rgba(0,255,65,.06);}
+.t-btn.on{border-color:var(--g);color:var(--g);background:rgba(0,255,65,.1);box-shadow:var(--sg);}
+.t-btn span{display:block;font-family:var(--font3);font-size:.58rem;color:var(--dim);margin-top:3px;font-weight:400;letter-spacing:1px;}
+.t-btn.on span{color:var(--g);}
+
+/* ========================================
+   TAB NAV
+======================================== */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.tab{
+  flex:1;background:transparent;border:none;border-bottom:2px solid transparent;
+  color:var(--dim);font-family:var(--font2);font-size:.72rem;
+  letter-spacing:2px;padding:10px 6px;text-transform:uppercase;
+  transition:.2s;
+}
+.tab:hover{color:var(--g);}
+.tab.on{color:var(--g);border-bottom-color:var(--g);}
+
+/* ========================================
+   CHAMPION BAR
+======================================== */
+.champ{
+  background:rgba(255,215,0,.04);
+  border:1px solid rgba(255,215,0,.2);
+  padding:9px 14px;text-align:center;
+  font-family:var(--font3);font-size:.8rem;letter-spacing:2px;
+  margin-bottom:14px;color:var(--y);
+  animation:gpulse 3s infinite;
+}
+@keyframes gpulse{0%,100%{box-shadow:0 0 8px rgba(255,229,0,.15);}50%{box-shadow:0 0 20px rgba(255,229,0,.35);}}
+.champ .cval{color:var(--gold);font-family:var(--font1);font-weight:700;}
+
+/* ========================================
+   MISSION GRID
+======================================== */
+.mgrid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:9px;width:100%;margin-bottom:10px;
+}
+.mbtn{
+  background:rgba(0,255,65,.03);
+  border:1px solid rgba(0,255,65,.18);
+  color:#fff;padding:13px 14px;
+  display:flex;align-items:center;
+  text-align:left;transition:.2s;
+  position:relative;overflow:hidden;
+  font-family:var(--font2);
+}
+.mbtn::after{
+  content:'';position:absolute;
+  top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(0,255,65,.07),transparent);
+  transition:left .4s;
+}
+.mbtn:hover::after{left:100%;}
+.mbtn:hover{background:rgba(0,255,65,.09);border-color:var(--g);box-shadow:var(--sg);transform:translateX(2px);}
+.mbtn:active{transform:scale(.98);}
+.mico{
+  font-family:var(--font1);font-size:1.1rem;font-weight:900;color:var(--g);
+  border:1px solid var(--border);width:40px;height:40px;min-width:40px;
+  display:flex;justify-content:center;align-items:center;
+  margin-right:12px;background:rgba(0,255,65,.07);
+  clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+}
+.mbtn:hover .mico{background:rgba(0,255,65,.18);box-shadow:var(--sg);}
+.minfo h3{font-family:var(--font1);font-size:clamp(.72rem,2vw,.85rem);color:var(--g);letter-spacing:2px;margin-bottom:3px;}
+.minfo small{font-family:var(--font3);color:var(--dim);font-size:.68rem;letter-spacing:1px;}
+
+/* ========================================
+   GAME HUD
+======================================== */
+.hud{
+  display:grid;
+  grid-template-columns:1.3fr 1.6fr 1fr 1fr;
+  gap:5px;margin-bottom:7px;width:100%;
+  flex-shrink:0;
+}
+.hbox{
+  background:var(--glass);border:1px solid var(--border);
+  padding:7px 9px;text-align:center;position:relative;overflow:hidden;
+}
+.hbox::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,currentColor,transparent);
+  opacity:.25;
+}
+.hlbl{font-family:var(--font3);font-size:.58rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:2px;}
+.hval{font-family:var(--font1);font-size:clamp(.9rem,3vw,1.3rem);font-weight:700;line-height:1;}
+.hbox-y{color:var(--y);border-color:rgba(255,229,0,.25);}
+.hbox-y .hval{text-shadow:var(--sy);}
+.hbox-b{color:var(--b);border-color:rgba(0,229,255,.25);}
+.hbox-b .hval{text-shadow:var(--sb);}
+.hbox-b.danger{color:var(--r) !important;animation:tdanger .5s infinite;}
+@keyframes tdanger{0%,100%{box-shadow:0 0 4px rgba(255,45,91,.2);}50%{box-shadow:var(--sr);}}
+.hbox-p{color:var(--p);border-color:rgba(200,80,255,.2);}
+.hbox-p .hval{text-shadow:0 0 10px var(--p);}
+
+/* ========================================
+   HP BAR
+======================================== */
+.hp-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;width:100%;flex-shrink:0;}
+.hp-lbl{font-family:var(--font3);font-size:.6rem;color:var(--dim);letter-spacing:2px;min-width:24px;}
+.hp-track{flex:1;height:7px;background:rgba(255,45,91,.1);border:1px solid rgba(255,45,91,.15);overflow:hidden;}
+#hp-fill{height:100%;width:100%;background:linear-gradient(90deg,var(--g),#00ff95);transition:width .4s ease,background .4s ease;}
+.hp-pct{font-family:var(--font1);font-size:.6rem;color:var(--g);min-width:34px;text-align:right;}
+
+/* ========================================
+   MONSTER ARENA
+======================================== */
+.arena{
+  width:100%;height:86px;
+  display:flex;justify-content:center;align-items:center;
+  position:relative;overflow:visible;margin-bottom:6px;
+  flex-shrink:0;
+}
+.monster{
+  width:64px;height:64px;position:relative;
+  animation:mfloat 3s ease-in-out infinite;
+  filter:drop-shadow(0 0 8px rgba(0,255,65,.5));
+}
+.m-body{
+  width:100%;height:100%;
+  background:radial-gradient(circle at 40% 40%,#001a0d,#000800);
+  clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+  transition:filter .12s;
+}
+.m-inner{
+  position:absolute;inset:8px;
+  background:radial-gradient(circle at 40% 35%,var(--g),#003a10);
+  clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+  opacity:.55;animation:mpulse 2s ease-in-out infinite;
+}
+.m-eye{
+  position:absolute;top:23px;left:16px;
+  width:32px;height:9px;background:var(--r);
+  clip-path:polygon(0 50%,4% 0%,96% 0%,100% 50%,96% 100%,4% 100%);
+  box-shadow:0 0 5px var(--r);
+  animation:eblink 4s infinite;
+}
+@keyframes mfloat{0%,100%{transform:translateY(0) rotate(0);}25%{transform:translateY(-7px) rotate(2deg);}75%{transform:translateY(4px) rotate(-2deg);}}
+@keyframes mpulse{0%,100%{opacity:.45;}50%{opacity:.9;}}
+@keyframes eblink{0%,93%,100%{transform:scaleY(1);}95%{transform:scaleY(.1);}}
+.monster.boss .m-body{background:radial-gradient(circle at 40% 40%,#380000,#080000);}
+.monster.boss .m-inner{background:radial-gradient(circle at 40% 35%,var(--r),#380000);}
+.monster.boss{filter:drop-shadow(0 0 12px rgba(255,45,91,.7));}
+.monster.hit .m-body{filter:brightness(3) hue-rotate(20deg);}
+.boss-ring{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(255,45,91,.4);
+  animation:bspin 3s linear infinite;
+  pointer-events:none;
+}
+@keyframes bspin{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+
+/* Floating damage */
+.dmg{
+  position:absolute;font-family:var(--font1);
+  font-weight:900;font-size:1.6rem;pointer-events:none;
+  animation:dfloat .7s ease-out forwards;white-space:nowrap;
+  left:50%;top:50%;transform:translate(-50%,-50%);
+}
+.dmg.good{color:var(--g);text-shadow:var(--sg);}
+.dmg.bad{color:var(--r);text-shadow:var(--sr);}
+.dmg.bonus{color:var(--y);text-shadow:var(--sy);font-size:1.1rem;}
+.dmg.combo{color:var(--p);text-shadow:0 0 10px var(--p);}
+@keyframes dfloat{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(.8);}
+  20%{opacity:1;transform:translate(-50%,-70%) scale(1.2);}
+  100%{opacity:0;transform:translate(-50%,-120%) scale(.9);}
+}
+
+/* ========================================
+   CODE AREA
+======================================== */
+.code-box{
+  width:100%;background:rgba(0,255,65,.025);
+  border:1px solid var(--border);
+  border-left:3px solid var(--g);
+  padding:12px 14px;margin-bottom:8px;
+  position:relative;min-height:96px;
+  flex-shrink:0;
+}
+.code-box::before{
+  content:'>>> QUERY';position:absolute;
+  top:-8px;left:10px;background:var(--bg);
+  padding:0 7px;font-size:.55rem;color:var(--dim);
+  letter-spacing:2px;font-family:var(--font3);
+}
+.q-meta{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:7px;font-family:var(--font3);font-size:.68rem;letter-spacing:2px;
+}
+.q-tag{
+  color:var(--b);background:rgba(0,229,255,.07);
+  padding:2px 9px;border:1px solid rgba(0,229,255,.2);
+  font-size:.62rem;letter-spacing:3px;font-weight:600;
+}
+.q-lvl{font-size:.62rem;color:var(--y);}
+.q-txt{
+  font-family:var(--font3);color:rgba(255,255,255,.65);
+  font-size:clamp(.78rem,2vw,.9rem);
+  font-style:italic;margin-bottom:8px;line-height:1.4;
+}
+.code-line{
+  font-family:var(--font2);
+  font-size:clamp(1rem,3.5vw,1.5rem);
+  color:#e8ffe8;line-height:1.7;word-break:break-all;
+}
+.typing::after{
+  content:'▌';animation:blink .8s step-end infinite;color:var(--g);
+}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+
+/* ========================================
+   INPUT ZONE
+======================================== */
+.izone{
+  width:100%;display:flex;align-items:stretch;
+  border:1px solid var(--g);
+  box-shadow:var(--sg);margin-bottom:7px;
+  transition:border-color .15s,box-shadow .15s;
+  flex-shrink:0;
+}
+.izone.wrong{border-color:var(--r);box-shadow:var(--sr);animation:ishake .35s ease;}
+.izone.ok{border-color:var(--g);box-shadow:0 0 20px rgba(0,255,65,.5);}
+@keyframes ishake{0%,100%{transform:translateX(0);}20%{transform:translateX(-5px);}40%{transform:translateX(5px);}60%{transform:translateX(-3px);}80%{transform:translateX(3px);}}
+.iprompt{
+  background:rgba(0,255,65,.1);
+  border-right:1px solid var(--border);
+  padding:9px 12px;font-family:var(--font2);
+  font-size:1.3rem;color:var(--g);
+  display:flex;align-items:center;
+}
+#ans-inp{
+  flex:1;background:rgba(0,255,65,.025);border:none;
+  color:#fff;font-family:var(--font2);
+  font-size:clamp(.9rem,3.5vw,1.3rem);
+  padding:9px 12px;outline:none;
+  letter-spacing:3px;text-transform:lowercase;min-width:0;
+}
+#ans-inp::placeholder{color:var(--dim);font-size:.75rem;letter-spacing:2px;}
+.fire-btn{
+  background:var(--g);color:#000;border:none;
+  padding:0 18px;font-family:var(--font1);
+  font-weight:900;font-size:clamp(.65rem,2vw,.8rem);
+  letter-spacing:2px;min-width:65px;text-transform:uppercase;
+  transition:.15s;
+}
+.fire-btn:hover{background:#00ff95;box-shadow:var(--sg);}
+.fire-btn:active{transform:scale(.97);}
+
+/* ========================================
+   POWER-UPS (Fixed for Mobile Clickability)
+======================================== */
+.pups{
+  display:flex;gap:5px;width:100%;
+  flex-shrink:0;
+  position:relative;
+  z-index:10; /* Ensures it sits above other background layers */
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+.pup{
+  flex:1;background:rgba(0,255,65,.025);
+  border:1px solid rgba(0,255,65,.18);
+  color:var(--g);padding:10px 4px; /* Increased padding for better touch target */
+  font-family:var(--font2);font-size:clamp(.65rem,2vw,.75rem);
+  letter-spacing:1px;text-transform:uppercase;
+  font-weight:bold;text-align:center;transition:.2s;
+  cursor:pointer;
+}
+.pup:hover:not(:disabled){background:rgba(0,255,65,.09);border-color:var(--g);box-shadow:var(--sg);}
+.pup:disabled{opacity:.35;cursor:not-allowed;}
+.pup .pi{font-size:1rem;display:block;margin-bottom:2px;}
+#btn-hint{border-color:rgba(0,229,255,.25);color:var(--b);}
+#btn-hint:hover:not(:disabled){background:rgba(0,229,255,.08);border-color:var(--b);box-shadow:var(--sb);}
+#btn-skip{border-color:rgba(255,229,0,.25);color:var(--y);}
+#btn-skip:hover:not(:disabled){background:rgba(255,229,0,.08);border-color:var(--y);box-shadow:var(--sy);}
+.hint-line{
+  font-family:var(--font2);color:var(--y);
+  font-size:.75rem;letter-spacing:2px;
+  text-align:center;padding:3px;min-height:18px;
+  animation:hfade .3s ease;
+  flex-shrink:0;
+}
+@keyframes hfade{from{opacity:0;}to{opacity:1;}}
+
+/* ========================================
+   MULTIPLAYER LOBBY PANELS
+======================================== */
+.lobby-players{
+  width:100%;max-height:260px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  margin-bottom:12px;
+}
+.lobby-players::-webkit-scrollbar{width:3px;}
+.lp-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;border-bottom:1px solid rgba(0,255,65,.06);
+  font-family:var(--font2);font-size:.8rem;
+  transition:.2s;
+}
+.lp-item:hover{background:rgba(0,255,65,.03);}
+.lp-name{color:#fff;letter-spacing:1px;}
+.lp-you{color:var(--g);font-size:.65rem;letter-spacing:2px;margin-left:6px;}
+.lp-host{color:var(--gold);font-size:.65rem;letter-spacing:2px;margin-left:4px;}
+.lp-ready{font-size:.7rem;letter-spacing:1px;}
+.lp-ready.yes{color:var(--g);}
+.lp-ready.no{color:var(--dim);}
+
+/* ========================================
+   LIVE SCOREBOARD (in-game)
+======================================== */
+.live-sb{
+  width:100%;margin-bottom:6px;
+  max-height:70px;overflow:hidden;
+  flex-shrink:0;
+}
+.lsb-row{
+  display:flex;align-items:center;gap:6px;
+  padding:3px 8px;font-family:var(--font2);font-size:.68rem;
+  border-bottom:1px solid rgba(0,255,65,.04);
+}
+.lsb-row.me{background:rgba(0,255,65,.05);}
+.lsb-rank{font-family:var(--font1);color:var(--dim);min-width:18px;font-size:.6rem;}
+.lsb-name{flex:1;color:rgba(255,255,255,.8);letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lsb-score{color:var(--y);font-weight:bold;}
+.lsb-hp{color:var(--g);font-size:.6rem;min-width:36px;text-align:right;}
+.lsb-done{color:var(--dim);font-size:.6rem;}
+
+/* ========================================
+   END / RESULTS
+======================================== */
+.end-sb{width:100%;}
+.esb-row{
+  display:grid;grid-template-columns:36px 1fr auto auto;
+  gap:8px;align-items:center;
+  padding:10px 12px;
+  border-bottom:1px solid rgba(0,255,65,.06);
+  font-family:var(--font2);font-size:.82rem;
+  transition:.2s;
+}
+.esb-row:hover{background:rgba(0,255,65,.03);}
+.esb-row.me{background:rgba(0,255,65,.06);border-color:var(--g);}
+.esb-rank{font-family:var(--font1);text-align:center;font-size:.9rem;}
+.esb-rank.r1{color:var(--gold);text-shadow:var(--sy);}
+.esb-rank.r2{color:#c0c0c0;}
+.esb-rank.r3{color:#cd7f32;}
+.esb-name{color:#fff;letter-spacing:1px;}
+.esb-score{color:var(--y);font-weight:bold;text-align:right;}
+.esb-badge{font-size:.62rem;letter-spacing:1px;color:var(--dim);text-align:right;}
+
+/* ========================================
+   REVIEW LOG
+======================================== */
+.review-scroll{
+  max-height:220px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  background:rgba(0,0,0,.25);padding:8px;
+  border:1px solid var(--border);margin-top:10px;
+}
+.review-scroll::-webkit-scrollbar{width:3px;}
+.ri{border-bottom:1px solid rgba(0,255,65,.06);padding:9px 0;}
+.ri:last-child{border:none;}
+.ri-num{font-family:var(--font1);font-size:.58rem;color:var(--dim);letter-spacing:2px;margin-bottom:3px;}
+.ri-q{color:rgba(255,255,255,.82);font-family:var(--font2);font-size:.78rem;margin-bottom:3px;line-height:1.4;}
+.ri-code{color:var(--b);font-size:.8rem;background:rgba(0,229,255,.05);padding:3px 7px;margin-bottom:3px;border-left:2px solid rgba(0,229,255,.3);}
+.ri-ans{color:var(--g);font-size:.82rem;font-weight:bold;}
+.ri-expl{color:var(--dim);font-size:.7rem;margin-top:3px;font-style:italic;line-height:1.5;}
+
+/* ========================================
+   CHAT
+======================================== */
+.chat-box{
+  width:100%;height:90px;overflow-y:auto;
+  background:rgba(0,0,0,.3);border:1px solid var(--border);
+  padding:6px 8px;font-family:var(--font2);font-size:.7rem;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  margin-bottom:6px;
+}
+.chat-box::-webkit-scrollbar{width:3px;}
+.chat-msg{padding:2px 0;line-height:1.5;border-bottom:1px solid rgba(0,255,65,.03);}
+.chat-msg .cn{color:var(--g);margin-right:6px;}
+.chat-msg .ct{color:rgba(255,255,255,.75);}
+.chat-msg.sys .ct{color:var(--dim);font-style:italic;}
+.chat-row{display:flex;gap:6px;}
+.chat-inp{
+  flex:1;background:rgba(0,255,65,.03);
+  border:1px solid var(--border);border-bottom:1px solid var(--g);
+  color:#fff;padding:7px 10px;
+  font-family:var(--font2);font-size:.72rem;
+  outline:none;text-transform:none;letter-spacing:1px;
+}
+.chat-inp:focus{box-shadow:var(--sg);}
+.chat-send{
+  background:rgba(0,255,65,.1);border:1px solid var(--g);
+  color:var(--g);padding:7px 14px;
+  font-family:var(--font2);font-size:.7rem;
+  letter-spacing:2px;transition:.2s;
+}
+.chat-send:hover{background:rgba(0,255,65,.2);}
+
+/* ========================================
+   ROOM CODE DISPLAY
+======================================== */
+.room-code-display{
+  font-family:var(--font1);font-size:clamp(1.6rem,5vw,2.5rem);
+  font-weight:900;color:var(--g);text-shadow:var(--sg);
+  letter-spacing:8px;text-align:center;
+  padding:12px;background:rgba(0,255,65,.05);
+  border:1px solid var(--g);margin:10px 0;
+  cursor:pointer;transition:.2s;
+}
+.room-code-display:hover{background:rgba(0,255,65,.1);box-shadow:var(--sg);}
+.copy-hint{text-align:center;font-family:var(--font3);color:var(--dim);font-size:.68rem;letter-spacing:2px;margin-bottom:12px;}
+
+/* ========================================
+   UTILS & RESPONSIVE
+======================================== */
+.sep{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:10px 0;}
+.txt-g{color:var(--g);}
+.txt-b{color:var(--b);}
+.txt-r{color:var(--r);}
+.txt-y{color:var(--y);}
+.txt-dim{color:var(--dim);}
+.txt-c{font-family:var(--font1);font-weight:700;}
+.row{display:flex;gap:8px;width:100%;}
+.row>.btn{flex:1;}
+.mc{max-width:620px;width:100%;}
+
+.toast{
+  position:fixed;top:50px;left:50%;transform:translateX(-50%);
+  background:var(--glass);border:1px solid var(--g);color:var(--g);
+  font-family:var(--font1);font-size:.78rem;padding:9px 22px;
+  letter-spacing:3px;text-transform:uppercase;z-index:700;
+  animation:tin .3s ease,tout .3s ease 1.6s forwards;
+  box-shadow:var(--sg);pointer-events:none;white-space:nowrap;
+}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(-8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+@keyframes tout{from{opacity:1;}to{opacity:0;}}
+
+.flash{position:fixed;inset:0;z-index:600;pointer-events:none;opacity:0;animation:sf .3s ease-out forwards;}
+@keyframes sf{0%{opacity:.3;}100%{opacity:0;}}
+
+.pt{
+  position:absolute;width:3px;height:3px;border-radius:50%;
+  animation:ptf var(--d,.6s) ease-out forwards;
+}
+@keyframes ptf{
+  0%{opacity:1;transform:translate(0,0) scale(1);}
+  100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0);}
+}
+
+@media(max-width:600px){
+  .mgrid{grid-template-columns:1fr;}
+  .hud{grid-template-columns:1fr 1.3fr 1fr;}.hbox-p{display:none;}
+  .title{font-size:clamp(1.6rem,8vw,2.8rem);}
+  .title::before,.title::after{display:none;}
+  .esb-row{grid-template-columns:30px 1fr auto;}
+  .esb-badge{display:none;}
+}
+@media(max-height:680px){
+  .arena{height:65px;}
+  .code-box{min-height:78px;padding:9px 12px;}
+  .hbox{padding:5px 7px;}
+  .hval{font-size:.9rem;}
+  .pup .pi{display:none;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="bg-grid"></div>
+<div class="bg-vig"></div>
+<div class="scanlines"></div>
+<div id="particles"></div>
+<button id="snd-btn">🔊 ON</button>
+
+<div id="app">
+
+<section id="s-menu" class="scene on">
+<div class="mc" style="text-align:center;">
+  <h1 class="title" data-t="PYTHON HUNTER">PYTHON HUNTER</h1>
+  <p class="sub">◈ ULTIMATE EDITION v4.0 ◈</p>
+
+  <div class="panel">
+    <div class="tabs">
+      <button class="tab on" onclick="switchTab('solo')">⚡ SOLO</button>
+      <button class="tab" onclick="switchTab('multi')">🌐 MULTIPLAYER</button>
+    </div>
+
+    <div id="tab-solo">
+      <label class="lbl">▸ CODENAME</label>
+      <input id="name-solo" class="inp" placeholder="ENTER NAME..." maxlength="12">
+
+      <label class="lbl" style="margin-top:12px;">▸ TIME LIMIT</label>
+      <div class="time-row">
+        <button class="t-btn on" data-t="60">60s<span>HARD</span></button>
+        <button class="t-btn" data-t="120">120s<span>NORMAL</span></button>
+        <button class="t-btn" data-t="180">180s<span>EASY</span></button>
+      </div>
+
+      <div class="champ" id="champ-bar">
+        🏆 CHAMPION: <span class="cval" id="cname">---</span> | <span class="cval" id="cscore">0</span>
+      </div>
+
+      <button class="btn btn-lg" onclick="goMission()">⚡ [ INITIATE HUNT ]</button>
+      <div class="row" style="margin-top:8px;">
+        <button class="btn btn-blue" onclick="showScene('s-manual')">[ MANUAL ]</button>
+        <button class="btn btn-gold" onclick="showLeaderboard()">[ HALL OF FAME ]</button>
+      </div>
+    </div>
+
+    <div id="tab-multi" style="display:none;">
+      <label class="lbl">▸ CODENAME</label>
+      <input id="name-multi" class="inp" placeholder="ENTER NAME..." maxlength="12">
+
+      <div class="sep"></div>
+
+      <div class="row" style="margin-top:4px;">
+        <button class="btn btn-lg" style="margin-top:0;" onclick="createRoom()">🏠 สร้างห้อง</button>
+        <button class="btn btn-lg btn-blue" style="margin-top:0;" onclick="showJoinPanel()">🚪 เข้าร่วม</button>
+      </div>
+
+      <div id="join-panel" style="display:none;margin-top:12px;">
+        <label class="lbl">▸ รหัสห้อง (5 ตัวอักษร)</label>
+        <input id="room-code-inp" class="inp inp-sm" placeholder="XXXXX" maxlength="5" style="text-align:center;letter-spacing:8px;">
+        <button class="btn btn-lg btn-blue" onclick="joinRoom()">[ เข้าห้อง ]</button>
+      </div>
+
+      <div id="multi-status" style="margin-top:10px;font-family:var(--font3);font-size:.75rem;color:var(--dim);text-align:center;letter-spacing:2px;"></div>
+    </div>
+  </div>
+  <p style="font-family:var(--font3);font-size:.6rem;color:var(--dim);margin-top:8px;letter-spacing:2px;">DEV: PANAKAPOL & KONGPHOP · v4.0</p>
+</div>
+</section>
+
+<section id="s-mission" class="scene">
+<div class="mc" style="width:100%;">
+  <h2 class="title" data-t="SELECT MODULE" style="font-size:clamp(1.4rem,5vw,2.1rem);text-align:center;margin-bottom:4px;">SELECT MODULE</h2>
+  <p class="sub" style="text-align:center;">เลือกหัวข้อที่ต้องการฝึก</p>
+
+  <div class="mgrid" id="mission-grid">
+    <button class="mbtn" data-mode="BASICS"><span class="mico">01</span><div class="minfo"><h3>BASICS</h3><small>Print · Int · Str · Type</small></div></button>
+    <button class="mbtn" data-mode="LOGIC"><span class="mico">02</span><div class="minfo"><h3>LOGIC</h3><small>If · Elif · And · Or</small></div></button>
+    <button class="mbtn" data-mode="LOOPS"><span class="mico">03</span><div class="minfo"><h3>LOOPS</h3><small>For · While · Break</small></div></button>
+    <button class="mbtn" data-mode="DATA"><span class="mico">04</span><div class="minfo"><h3>DATA</h3><small>List · Dict · Set</small></div></button>
+    <button class="mbtn" data-mode="FUNC"><span class="mico">05</span><div class="minfo"><h3>FUNC</h3><small>Def · Return · Lambda</small></div></button>
+    <button class="mbtn" data-mode="OOP"><span class="mico">06</span><div class="minfo"><h3>OOP</h3><small>Class · Init · Self</small></div></button>
+    <button class="mbtn" data-mode="DATABASE"><span class="mico">07</span><div class="minfo"><h3>DATABASE</h3><small>Connect · Cursor · SQL</small></div></button>
+    <button class="mbtn" data-mode="FILE"><span class="mico">08</span><div class="minfo"><h3>FILE I/O</h3><small>Open · Read · Write</small></div></button>
+  </div>
+
+  <button class="btn btn-lg btn-red" data-mode="SURVIVAL" style="margin-top:4px;width:100%;">☠ SURVIVAL MODE — HARDCORE ONLY</button>
+
+  <button class="btn btn-lg" style="background:transparent;border-color:var(--border);margin-top:8px;" onclick="showScene('s-menu')">[ ← BACK ]</button>
+</div>
+</section>
+
+<section id="s-lobby" class="scene">
+<div class="mc" style="width:100%;">
+  <h2 class="title" data-t="GAME LOBBY" style="font-size:clamp(1.2rem,4vw,1.8rem);text-align:center;">GAME LOBBY</h2>
+
+  <div class="panel">
+    <div class="room-code-display" id="lobby-code" onclick="copyCode()">XXXXX</div>
+    <p class="copy-hint">แตะรหัสเพื่อคัดลอก — แชร์ให้เพื่อน</p>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-family:var(--font3);font-size:.7rem;color:var(--b);letter-spacing:2px;">
+        MODE: <span id="lobby-mode" class="txt-g">---</span> &nbsp;|&nbsp;
+        TIME: <span id="lobby-time" class="txt-g">---</span>s
+      </span>
+      <span style="font-family:var(--font2);font-size:.68rem;color:var(--dim);" id="lobby-count">0/8 players</span>
+    </div>
+
+    <div class="lobby-players" id="lobby-players"></div>
+
+    <div class="chat-box" id="lobby-chat"></div>
+    <div class="chat-row">
+      <input class="chat-inp" id="chat-inp-lobby" placeholder="พิมพ์ข้อความ..." maxlength="80">
+      <button class="chat-send" onclick="sendChat('lobby')">SEND</button>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="row" style="gap:8px;">
+      <button class="btn" id="ready-btn" onclick="toggleReady()" style="flex:1;">[ READY ]</button>
+      <button class="btn btn-lg btn-red" id="start-btn" onclick="startGame()" style="flex:2;margin-top:0;display:none;">▶ START GAME</button>
+    </div>
+    <button class="btn" onclick="leaveRoom()" style="width:100%;margin-top:6px;border-color:var(--border);font-size:.68rem;">[ LEAVE ROOM ]</button>
+  </div>
+</div>
+</section>
+
+<section id="s-game" class="scene">
+  <div class="hud">
+    <div class="hbox"><span class="hlbl">PLAYER</span><div class="hval" id="hud-name" style="font-size:clamp(.65rem,2.5vw,.9rem);letter-spacing:1px;">---</div></div>
+    <div class="hbox hbox-y"><span class="hlbl">SCORE</span><div class="hval" id="hud-score">0</div></div>
+    <div class="hbox hbox-b"><span class="hlbl">TIME</span><div class="hval" id="hud-timer">60</div></div>
+    <div class="hbox hbox-p"><span class="hlbl">COMBO</span><div class="hval" id="hud-combo">×0</div></div>
+  </div>
+
+  <div class="hp-row">
+    <span class="hp-lbl">HP</span>
+    <div class="hp-track"><div id="hp-fill"></div></div>
+    <span class="hp-pct" id="hp-pct">100%</span>
+  </div>
+
+  <div class="live-sb" id="live-sb" style="display:none;"></div>
+
+  <div class="arena" id="arena">
+    <div id="monster" class="monster">
+      <div class="m-body"></div>
+      <div class="m-inner"></div>
+      <div class="m-eye"></div>
+    </div>
+  </div>
+
+  <div class="code-box">
+    <div class="q-meta">
+      <span class="q-tag" id="q-mode">MODULE</span>
+      <span class="q-lvl" id="q-lvl">LVL —</span>
+    </div>
+    <div class="q-txt" id="q-txt">Loading...</div>
+    <div class="code-line typing" id="q-code">_</div>
+  </div>
+
+  <div class="hint-line" id="hint-line"></div>
+
+  <div class="izone" id="izone">
+    <span class="iprompt">❯</span>
+    <input id="ans-inp" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="type answer here...">
+    <button class="fire-btn" onclick="G.submit()">FIRE</button>
+  </div>
+
+  <div class="pups">
+    <button class="pup" id="btn-potion" onclick="G.useItem('potion')"><span class="pi">💊</span>HP(0)</button>
+    <button class="pup" id="btn-hint" onclick="G.useItem('hint')"><span class="pi">💡</span>HINT(0)</button>
+    <button class="pup" id="btn-skip" onclick="G.useItem('skip')"><span class="pi">⏩</span>SKIP(0)</button>
+  </div>
+</section>
+
+<section id="s-end" class="scene">
+<div class="mc" style="width:100%;">
+  <h1 id="end-title" class="title" data-t="SESSION END" style="text-align:center;font-size:clamp(1.4rem,5vw,2.2rem);margin-bottom:8px;">SESSION END</h1>
+
+  <div class="panel">
+    <div style="display:flex;justify-content:space-around;padding:12px 0 14px;border-bottom:1px solid var(--border);gap:8px;">
+      <div style="text-align:center;">
+        <div style="font-family:var(--font3);font-size:.6rem;color:var(--dim);letter-spacing:3px;margin-bottom:3px;">PLAYER</div>
+        <div class="txt-c" id="end-name" style="color:var(--b);font-size:clamp(.9rem,3vw,1.2rem);">---</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:var(--font3);font-size:.6rem;color:var(--dim);letter-spacing:3px;margin-bottom:3px;">SCORE</div>
+        <div class="txt-c" id="end-score" style="font-size:clamp(.9rem,3vw,1.2rem);">0</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:var(--font3);font-size:.6rem;color:var(--dim);letter-spacing:3px;margin-bottom:3px;">MODULE</div>
+        <div class="txt-c" id="end-mode" style="color:var(--y);font-size:clamp(.75rem,2.5vw,.95rem);">---</div>
+      </div>
+    </div>
+
+    <div id="end-multi-sb" style="display:none;">
+      <h3 style="font-family:var(--font1);font-size:.72rem;color:var(--b);letter-spacing:3px;margin:12px 0 8px;text-transform:uppercase;">FINAL RANKING</h3>
+      <div class="end-sb" id="end-sb-list"></div>
+    </div>
+
+    <div id="end-review">
+      <h3 style="font-family:var(--font1);font-size:.65rem;color:var(--dim);letter-spacing:3px;margin:10px 0 6px;">▸ REVIEW LOG</h3>
+      <div class="review-scroll" id="review-log"></div>
+    </div>
+
+    <div class="row" style="margin-top:12px;">
+      <button class="btn btn-lg" id="btn-again" style="margin-top:0;" onclick="G.playAgain()">[ PLAY AGAIN ]</button>
+      <button class="btn btn-lg" style="margin-top:0;border-color:var(--border);" onclick="showScene('s-menu')">[ MENU ]</button>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="s-lb" class="scene">
+<div class="mc" style="width:100%;">
+  <h2 class="title" data-t="HALL OF FAME" style="text-align:center;font-size:clamp(1.4rem,5vw,2rem);">HALL OF FAME</h2>
+  <p class="sub" style="text-align:center;">TOP HUNTERS ALL TIME</p>
+  <div class="panel">
+    <table style="width:100%;border-collapse:collapse;font-family:var(--font2);font-size:.8rem;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);">
+          <th style="padding:8px;text-align:left;font-family:var(--font3);font-size:.62rem;color:var(--b);letter-spacing:2px;">#</th>
+          <th style="padding:8px;text-align:left;font-family:var(--font3);font-size:.62rem;color:var(--b);letter-spacing:2px;">NAME</th>
+          <th style="padding:8px;text-align:right;font-family:var(--font3);font-size:.62rem;color:var(--b);letter-spacing:2px;">SCORE</th>
+          <th style="padding:8px;text-align:right;font-family:var(--font3);font-size:.62rem;color:var(--b);letter-spacing:2px;">MODE</th>
+        </tr>
+      </thead>
+      <tbody id="lb-body"></tbody>
+    </table>
+    <div id="lb-empty" style="text-align:center;padding:24px;color:var(--dim);font-family:var(--font3);letter-spacing:2px;display:none;">NO RECORDS YET</div>
+  </div>
+  <button class="btn btn-lg" onclick="showScene('s-menu')" style="margin-top:10px;">[ ← BACK ]</button>
+</div>
+</section>
+
+<section id="s-manual" class="scene scroll-scene">
+<div class="mc" style="padding:20px 0 40px;width:100%;">
+  <h2 class="title" data-t="PYTHON MANUAL" style="text-align:center;margin-bottom:14px;font-size:clamp(1.4rem,5vw,2rem);">PYTHON MANUAL</h2>
+  
+  <div class="panel" style="margin-bottom:12px;">
+    <div style="background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.2);padding:14px;margin-bottom:18px;">
+      <div style="font-family:var(--font1);font-size:.8rem;color:var(--b);letter-spacing:2px;margin-bottom:10px;border-bottom:1px solid rgba(0,229,255,.15);padding-bottom:6px;">🔰 กฎกติกาการเล่น (HOW TO PLAY)</div>
+      <ul style="list-style:none;font-family:var(--font3);font-size:.82rem;color:rgba(255,255,255,.8);line-height:1.8;">
+        <li>▸ <strong>เป้าหมาย:</strong> ตอบคำถาม Python Syntax ให้ถูกต้องเพื่อโจมตี Bug Monster</li>
+        <li>▸ <strong>คะแนน:</strong> ตอบถูกรับ <span style="color:var(--g);">+150 คะแนน</span>/ข้อ</li>
+        <li>▸ <strong>TIME BONUS:</strong> ตอบถูกต่อเนื่อง 3 ข้อ → <span style="color:var(--y);">+10 วินาที</span></li>
+        <li>▸ <strong>เงื่อนไขการชนะ (WIN):</strong> 60s = 800 | 120s = 1,500 | 180s = 2,000 คะแนน</li>
+        <li>▸ <strong>ไอเทมตัวช่วย:</strong> 💊 HP+30% | 💡 HINT ตัวแรก -50pts | ⏩ SKIP -100pts</li>
+        <li>▸ <strong>Survival Mode:</strong> โหมดโหดหิน สุ่มเฉพาะโจทย์ระดับ <span style="color:var(--r);">ข้อยากพิเศษ</span> (Level 6-7) เท่านั้น</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">1. BASICS (พื้นฐานและตัวแปร)</h3>
+      <p style="font-family:var(--font3);font-size:.82rem;color:rgba(255,255,255,.65);margin-bottom:8px;line-height:1.6;">
+        Python เป็นภาษาที่เน้นความอ่านง่ายเหมือนภาษาอังกฤษ การประกาศตัวแปรสามารถทำได้ทันทีโดยไม่ต้องระบุชนิดข้อมูล (Dynamic Typing) แต่เป็นภาษาที่ <strong>Case-sensitive</strong> (ตัวพิมพ์เล็ก-ใหญ่ มีผลต่างกัน)
+      </p>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">print(...)</span> : แสดงผลข้อมูลออกหน้าจอ Console</li>
+        <li><span style="color:var(--b);">input(...)</span> : รอรับค่าจากแป้นพิมพ์ (ข้อมูลจะเป็น String เสมอ)</li>
+        <li><span style="color:var(--b);">int(...)</span> : แปลงข้อมูลให้เป็นเลขจำนวนเต็ม (Integer)</li>
+        <li><span style="color:var(--b);">float(...)</span> : แปลงข้อมูลให้เป็นเลขทศนิยม</li>
+        <li><span style="color:var(--b);">str(...)</span> : แปลงข้อมูลให้เป็นข้อความ (String)</li>
+        <li><span style="color:var(--b);">type(...)</span> : ใช้ตรวจสอบชนิดของข้อมูล</li>
+        <li><span style="color:var(--b);">del</span> : ลบตัวแปรออกจากหน่วยความจำ</li>
+        <li><span style="color:var(--b);">True / False</span> : ค่าความจริง (Boolean) ต้องขึ้นต้นด้วยตัวพิมพ์ใหญ่</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">2. LOGIC (ตรรกะและเงื่อนไข)</h3>
+      <p style="font-family:var(--font3);font-size:.82rem;color:rgba(255,255,255,.65);margin-bottom:8px;line-height:1.6;">
+        หัวใจสำคัญคือ <strong>การย่อหน้า (Indentation)</strong> เพื่อบอกขอบเขตของบล็อกคำสั่ง แทนการใช้วงเล็บปีกกา
+      </p>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">if</span> : ถ้าเงื่อนไขเป็น "จริง" ให้ทำคำสั่งในบล็อกที่ย่อหน้า</li>
+        <li><span style="color:var(--b);">elif</span> : (Else If) ตรวจสอบเงื่อนไขถัดมา หาก if ด้านบนเป็นเท็จ</li>
+        <li><span style="color:var(--b);">else</span> : กรณีสุดท้าย จะทำงานเมื่อทุกเงื่อนไขเป็นเท็จ</li>
+        <li><span style="color:var(--b);">==</span> : เครื่องหมาย "เท่ากับ" (เปรียบเทียบค่า)</li>
+        <li><span style="color:var(--b);">!=</span> : เครื่องหมาย "ไม่เท่ากับ" (Not Equal)</li>
+        <li><span style="color:var(--b);">and / or</span> : ตรรกะ "และ" (ต้องจริงคู่) / ตรรกะ "หรือ" (จริงแค่อันเดียว)</li>
+        <li><span style="color:var(--b);">is / is not</span> : ตรวจสอบ Object หรือเช็คค่า None อย่างปลอดภัย</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">3. LOOPS (การวนซ้ำ)</h3>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">for i in ...</span> : ใช้เมื่อรู้จำนวนรอบที่แน่นอน หรือวนซ้ำสมาชิก List</li>
+        <li><span style="color:var(--b);">range(start, stop)</span> : สร้างลำดับตัวเลข (stop จะไม่ถูกรวม)</li>
+        <li><span style="color:var(--b);">while</span> : ทำงานวนซ้ำตราบใดที่เงื่อนไขยังเป็น True</li>
+        <li><span style="color:var(--b);">break</span> : สั่ง "หยุด" และออกจาก Loop ทันที</li>
+        <li><span style="color:var(--b);">continue</span> : สั่ง "ข้าม" การทำงานในรอบนั้นเพื่อไปเริ่มรอบถัดไปทันที</li>
+        <li><span style="color:var(--b);">enumerate()</span> : ฟังก์ชันช่วยวนลูปที่คืนค่าทั้ง Index และ Value</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">4. DATA STRUCTURES (โครงสร้างข้อมูล)</h3>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">List [...]</span> : เก็บแบบลำดับ แก้ไขได้</li>
+        <li><span style="color:var(--b);">.append(x) / .pop()</span> : เพิ่มข้อมูลต่อท้าย / ดึงตัวสุดท้ายออก</li>
+        <li><span style="color:var(--b);">Dict {key: value}</span> : เก็บข้อมูลแบบคู่ ไม่เรียงลำดับ เข้าถึงด้วย Key</li>
+        <li><span style="color:var(--b);">.keys() / .items()</span> : ดึง Key ทั้งหมด / ดึงทั้งคู่ Key-Value</li>
+        <li><span style="color:var(--b);">Set (...)</span> : ไม่เก็บค่าซ้ำ ใช้เมธอด .add() เพื่อเพิ่มข้อมูล</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">5. FUNC (ฟังก์ชันและโมดูล)</h3>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">def name():</span> : ประกาศสร้างฟังก์ชัน</li>
+        <li><span style="color:var(--b);">return</span> : ส่งค่าผลลัพธ์กลับและจบการทำงานทันที</li>
+        <li><span style="color:var(--b);">import ... as ...</span> : นำเข้า Module นอกมาใช้ และตั้งชื่อเล่น (Alias)</li>
+        <li><span style="color:var(--b);">*args / **kwargs</span> : รับพารามิเตอร์จำนวนมากเข้ามาเป็น Tuple หรือ Dict</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">6. OOP (การเขียนโปรแกรมเชิงวัตถุ)</h3>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">class Name:</span> : การประกาศสร้างแม่พิมพ์ (Blueprint)</li>
+        <li><span style="color:var(--b);">__init__</span> : Constructor ที่จะทำงานอัตโนมัติเมื่อสร้าง Object</li>
+        <li><span style="color:var(--b);">self</span> : ตัวแปรใช้แทน "ตัวเอง" ภายในคลาส</li>
+        <li><span style="color:var(--b);">super()</span> : เรียกใช้เมธอดจากคลาสแม่ (Inheritance)</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">7. DATABASE & FILE I/O</h3>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">sqlite3.connect()</span> : เชื่อมต่อ Database และ <span style="color:var(--b);">.execute()</span> สั่งรัน SQL</li>
+        <li><span style="color:var(--b);">.commit() / .close()</span> : บันทึกการเปลี่ยนแปลง / ปิดการเชื่อมต่อ Database</li>
+        <li><span style="color:var(--b);">open('f.txt', 'r')</span> : เปิดอ่านไฟล์ <span style="color:var(--b);">.read()</span> อ่านทั้งหมด <span style="color:var(--b);">.write()</span> เขียนข้อมูล</li>
+      </ul>
+    </div>
+
+    <div>
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--r);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--r);">9. SURVIVAL (Advanced - โหดพิเศษ)</h3>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">Comprehension</span> : การสร้าง List ในบรรทัดเดียว [x for x in r]</li>
+        <li><span style="color:var(--b);">lambda</span> : ฟังก์ชันขนาดสั้นแบบไม่มีชื่อ</li>
+        <li><span style="color:var(--b);">yield</span> : สร้าง Generator เพื่อประหยัด Memory ลูป</li>
+        <li><span style="color:var(--b);">nonlocal</span> : เข้าถึงหรือแก้ไขตัวแปรที่อยู่ในขอบเขตชั้นนอก</li>
+        <li><span style="color:var(--b);">:= (Walrus)</span> : ทำ Assignment ภายใน Expression ไปในตัว</li>
+      </ul>
+    </div>
+  </div>
+  
+  <button class="btn btn-lg" onclick="showScene('s-menu')">[ ← BACK TO MENU ]</button>
+</div>
+</section>
+
+</div><script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+/* ============================================================
+   PYTHON HUNTER v4 — CLIENT JS
+   Full rewrite: Solo + Multiplayer (Socket.IO)
+   ============================================================ */
+
+/* ─── MATRIX RAIN ───────────────────────────────────────── */
+(function(){
+  const c=document.getElementById('bg-canvas'),x=c.getContext('2d');
+  let drops=[];
+  function resize(){
+    c.width=innerWidth;c.height=innerHeight;
+    const cols=Math.floor(c.width/18);
+    drops=Array.from({length:cols},()=>Math.random()*-c.height/18);
+  }
+  window.addEventListener('resize',resize);resize();
+  const ch='アイウエオカキクケサシスセソタチツテトナニハヒフヘ0123456789ABCDEF'.split('');
+  setInterval(()=>{
+    x.fillStyle='rgba(0,0,0,.05)';x.fillRect(0,0,c.width,c.height);
+    drops.forEach((y,i)=>{
+      const bright=Math.random()>.95;
+      x.fillStyle=bright?'#fff':'#00ff41';
+      x.font=(bright?'bold ':'')+'13px monospace';
+      x.fillText(ch[Math.floor(Math.random()*ch.length)],i*18,y*18);
+      if(y*18>c.height&&Math.random()>.975)drops[i]=0;
+      drops[i]+=Math.random()*.5+.3;
+    });
+  },45);
+})();
+
+/* ─── SOUND ENGINE ──────────────────────────────────────── */
+const SFX=(()=>{
+  let ctx,master,muted=false;
+  function init(){
+    if(ctx)return;
+    try{
+      ctx=new(window.AudioContext||window.webkitAudioContext)();
+      master=ctx.createGain();master.gain.value=.65;
+      master.connect(ctx.destination);
+    }catch(e){}
+  }
+  function resume(){if(ctx&&ctx.state==='suspended')ctx.resume();}
+  function tone(freq,type,dur,vol=.12,delay=0){
+    if(muted||!ctx)return;resume();
+    try{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type=type;o.frequency.setValueAtTime(freq,ctx.currentTime+delay);
+      g.gain.setValueAtTime(0,ctx.currentTime+delay);
+      g.gain.linearRampToValueAtTime(vol,ctx.currentTime+delay+.01);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+delay+dur);
+      o.connect(g);g.connect(master);
+      o.start(ctx.currentTime+delay);o.stop(ctx.currentTime+delay+dur);
+    }catch(e){}
+  }
+  function noise(dur,vol=.05){
+    if(muted||!ctx)return;resume();
+    try{
+      const buf=ctx.createBuffer(1,ctx.sampleRate*dur,ctx.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1);
+      const s=ctx.createBufferSource(),g=ctx.createGain(),f=ctx.createBiquadFilter();
+      f.type='bandpass';f.frequency.value=800;
+      s.buffer=buf;g.gain.setValueAtTime(vol,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
+      s.connect(f);f.connect(g);g.connect(master);s.start();s.stop(ctx.currentTime+dur);
+    }catch(e){}
+  }
+  return{
+    init,
+    toggle(){muted=!muted;if(master)master.gain.value=muted?0:.65;return muted;},
+    click(){tone(880,'square',.05,.07);tone(440,'square',.05,.04,.03);},
+    nav(){tone(600,'sine',.08,.1);tone(900,'sine',.06,.08,.05);},
+    correct(){tone(523,'sine',.1,.14);tone(659,'sine',.12,.12,.05);tone(784,'sine',.15,.17,.1);noise(.05,.03);},
+    combo(){[392,523,659,784,1047].forEach((f,i)=>tone(f,'sine',.12,.14,i*.08));tone(1568,'triangle',.3,.18,.4);},
+    wrong(){tone(110,'sawtooth',.15,.18);tone(98,'square',.2,.11,.05);noise(.12,.07);},
+    win(){const m=[523,659,784,1047,784,1047,1319];m.forEach((f,i)=>{tone(f,'square',.2,.14,i*.12);tone(f/2,'triangle',.2,.07,i*.12);});},
+    lose(){[784,659,523,392,294,220].forEach((f,i)=>tone(f,'sawtooth',.2,.11,i*.15));},
+    bonus(){[1047,1319,1568,2093].forEach((f,i)=>tone(f,'sine',.15,.14,i*.07));},
+    lowtime(){tone(440,'square',.08,.1);},
+    item(){tone(700,'triangle',.1,.11);tone(900,'sine',.15,.09,.05);},
+    join(){tone(660,'sine',.1,.12);tone(880,'sine',.12,.1,.07);},
+  };
+})();
+
+document.getElementById('snd-btn').addEventListener('click',e=>{
+  SFX.init();
+  const m=SFX.toggle();
+  e.target.textContent=m?'🔇 OFF':'🔊 ON';
+});
+
+/* ─── PARTICLES ─────────────────────────────────────────── */
+const PC=document.getElementById('particles');
+function burst(x,y,color='#00ff41',n=12){
+  for(let i=0;i<n;i++){
+    const p=document.createElement('div');p.className='pt';
+    const a=(i/n)*360+Math.random()*30,dist=30+Math.random()*60;
+    const tx=Math.cos(a*Math.PI/180)*dist,ty=Math.sin(a*Math.PI/180)*dist-20;
+    const dur=.4+Math.random()*.4;
+    p.style.cssText=`left:${x}px;top:${y}px;background:${color};box-shadow:0 0 4px ${color};--tx:${tx}px;--ty:${ty}px;--d:${dur}s;width:${2+Math.random()*4}px;height:${2+Math.random()*4}px;`;
+    PC.appendChild(p);setTimeout(()=>p.remove(),dur*1000);
+  }
+}
+function burstEl(el,color,n){
+  const r=el.getBoundingClientRect();
+  burst(r.left+r.width/2,r.top+r.height/2,color,n);
+}
+
+/* ─── UTILS ─────────────────────────────────────────────── */
+function toast(msg,type='g'){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const d=document.createElement('div');d.className='toast';
+  const clr={'g':'var(--g)','r':'var(--r)','b':'var(--b)','y':'var(--y)'}[type]||'var(--g)';
+  d.style.color=clr;d.style.borderColor=clr;d.textContent=msg;
+  document.body.appendChild(d);setTimeout(()=>d.remove(),1900);
+}
+function flash(color){
+  const d=document.createElement('div');d.className='flash';d.style.background=color;
+  document.body.appendChild(d);setTimeout(()=>d.remove(),300);
+}
+function floatDmg(msg,type){
+  const arena=document.getElementById('arena');
+  const d=document.createElement('div');d.className=`dmg ${type}`;d.textContent=msg;
+  d.style.left=`${35+Math.random()*30}%`;d.style.top='50%';
+  arena.appendChild(d);setTimeout(()=>d.remove(),700);
+}
+function showScene(id){
+  document.querySelectorAll('.scene').forEach(s=>{
+    s.classList.remove('on');
+  });
+  const t=document.getElementById(id);
+  t.classList.add('on');
+  t.scrollTop=0;
+}
+function addChat(box,data){
+  const d=document.createElement('div');
+  d.className=data.system?'chat-msg sys':'chat-msg';
+  if(data.system)d.innerHTML=`<span class="ct">${data.text}</span>`;
+  else d.innerHTML=`<span class="cn">[${data.name}]</span><span class="ct">${data.text}</span>`;
+  box.appendChild(d);box.scrollTop=box.scrollHeight;
+}
+
+/* ─── TABS ──────────────────────────────────────────────── */
+function switchTab(tab){
+  SFX.click();
+  document.getElementById('tab-solo').style.display=tab==='solo'?'block':'none';
+  document.getElementById('tab-multi').style.display=tab==='multi'?'block':'none';
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('on',(i===0&&tab==='solo')||(i===1&&tab==='multi'));
+  });
+}
+
+/* ─── TIME SELECTOR ─────────────────────────────────────── */
+document.querySelectorAll('.t-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    SFX.click();
+    document.querySelectorAll('.t-btn').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+  });
+});
+function getSelectedTime(){
+  const b=document.querySelector('.t-btn.on');
+  return b?parseInt(b.dataset.t):60;
+}
+
+/* ─── MISSION BUTTONS ───────────────────────────────────── */
+function goMission(){
+  SFX.nav();
+  const n=document.getElementById('name-solo').value.trim();
+  if(!n){toast('ใส่ชื่อก่อน!','r');document.getElementById('name-solo').focus();return;}
+  G.playerName=n.toUpperCase().slice(0,12);
+  G.selectedTime=getSelectedTime();
+  G.mode='solo';
+  showScene('s-mission');
+}
+document.getElementById('mission-grid').addEventListener('click',e=>{
+  const btn=e.target.closest('.mbtn[data-mode]');
+  if(!btn)return;
+  SFX.nav();G.startSolo(btn.dataset.mode);
+});
+document.querySelector('.btn-red[data-mode="SURVIVAL"]').addEventListener('click',()=>{
+  SFX.nav();G.startSolo('SURVIVAL');
+});
+
+/* ─── LEADERBOARD ───────────────────────────────────────── */
+function showLeaderboard(){
+  SFX.nav();
+  const lb=G.loadLB();
+  const body=document.getElementById('lb-body');
+  const empty=document.getElementById('lb-empty');
+  body.innerHTML='';
+  if(!lb.length){empty.style.display='block';}
+  else{
+    empty.style.display='none';
+    const icons=['🥇','🥈','🥉'];
+    lb.forEach((p,i)=>{
+      const tr=document.createElement('tr');
+      const clr=i===0?'var(--gold)':i===1?'#c0c0c0':i===2?'#cd7f32':'rgba(255,255,255,.75)';
+      tr.innerHTML=`
+        <td style="padding:9px;text-align:left;color:${clr};font-family:var(--font1);">${icons[i]||i+1}</td>
+        <td style="padding:9px;color:#fff;font-family:var(--font2);letter-spacing:1px;">${p.name}</td>
+        <td style="padding:9px;text-align:right;color:var(--y);font-weight:bold;font-family:var(--font1);">${p.score.toLocaleString()}</td>
+        <td style="padding:9px;text-align:right;color:var(--dim);font-size:.7rem;">${p.mode}</td>
+      `;
+      body.appendChild(tr);
+    });
+  }
+  showScene('s-lb');
+}
+
+/* ─── CHAMPION BAR ──────────────────────────────────────── */
+function updateChampion(){
+  const lb=G.loadLB();
+  if(lb.length){
+    document.getElementById('cname').textContent=lb[0].name;
+    document.getElementById('cscore').textContent=lb[0].score.toLocaleString();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GAME ENGINE — SOLO
+═══════════════════════════════════════════════════════════ */
+const G={
+  playerName:'PLAYER',
+  selectedTime:60,
+  mode:'solo',
+  score:0,hp:100,timer:60,combo:0,
+  questions:[],qIdx:0,
+  currentQ:null,
+  sessionHistory:[],
+  hints:1,potions:1,skips:1,
+  winScore:800,defaultItems:1,
+  isPlaying:false,
+  timerInterval:null,
+  typingTimer:null,
+  lowTimePlayed:false,
+  lastMode:'BASICS',
+
+  loadLB(){
+    try{return JSON.parse(localStorage.getItem('ph_lb_v4'))||[];}catch(e){return[];}
+  },
+  saveLB(entry){
+    const lb=this.loadLB();
+    lb.push(entry);lb.sort((a,b)=>b.score-a.score);
+    try{localStorage.setItem('ph_lb_v4',JSON.stringify(lb.slice(0,15)));}catch(e){}
+  },
+
+  shuffle(a){
+    const r=[...a];
+    for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}
+    return r;
+  },
+
+  startSolo(modeKey){
+    this.lastMode=modeKey;
+    SFX.init();
+    const timeMap={60:{win:800,items:1},120:{win:1500,items:2},180:{win:2000,items:3}};
+    const cfg=timeMap[this.selectedTime]||timeMap[60];
+    this.winScore=cfg.win;this.defaultItems=cfg.items;
+    this.score=0;this.hp=100;this.timer=this.selectedTime;this.combo=0;
+    this.sessionHistory=[];this.isPlaying=false;this.lowTimePlayed=false;
+    this.hints=cfg.items;this.potions=cfg.items;this.skips=cfg.items;
+
+    let pool=modeKey==='SURVIVAL'
+      ?SOLO_QUESTIONS.filter(q=>q.level>=6)
+      :SOLO_QUESTIONS.filter(q=>q.mode===modeKey);
+    if(!pool.length)pool=SOLO_QUESTIONS;
+    this.questions=this.shuffle(pool);this.qIdx=0;
+
+    const mon=document.getElementById('monster');
+    mon.classList.toggle('boss',modeKey==='SURVIVAL');
+    this._clearBossRings();
+    if(modeKey==='SURVIVAL')this._addBossRings();
+
+    document.getElementById('hud-name').textContent=this.playerName;
+    document.getElementById('live-sb').style.display='none';
+    this._updateHUD();
+    this._updatePups();
+    document.getElementById('hint-line').textContent='';
+
+    showScene('s-game');
+    setTimeout(()=>{
+      this.isPlaying=true;
+      this._nextQ();
+      this._startTimer();
+      document.getElementById('ans-inp').focus();
+    },350);
+  },
+
+  _addBossRings(){
+    const arena=document.getElementById('arena');
+    [50,80,110].forEach((s,i)=>{
+      const r=document.createElement('div');r.className='boss-ring';
+      r.id=`br${i}`;r.style.cssText=`width:${s}px;height:${s}px;top:50%;left:50%;margin:-${s/2}px;animation-duration:${2+i}s;animation-direction:${i%2?'reverse':'normal'};`;
+      arena.appendChild(r);
+    });
+  },
+  _clearBossRings(){[0,1,2].forEach(i=>{const r=document.getElementById(`br${i}`);if(r)r.remove();});},
+
+  _nextQ(){
+    if(this.questions.length===0){
+      let pool=this.lastMode==='SURVIVAL'
+        ?SOLO_QUESTIONS.filter(q=>q.level>=6)
+        :SOLO_QUESTIONS.filter(q=>q.mode===this.lastMode);
+      if(!pool.length)pool=SOLO_QUESTIONS;
+      this.questions=this.shuffle(pool);this.qIdx=0;
+    }
+    this.currentQ=this.questions[this.qIdx%this.questions.length];
+    this.qIdx++;
+    if(!this.currentQ.inHistory)this.sessionHistory.push(this.currentQ);
+    this.currentQ.inHistory=true;
+
+    document.getElementById('q-txt').textContent=this.currentQ.text;
+    document.getElementById('q-mode').textContent=this.currentQ.mode;
+    const lvlCols=['','#00ff41','#00e5ff','#ffe500','#ff7b00','#c850ff','#ff2d5b','#ff2d5b'];
+    const lv=this.currentQ.level||1;
+    const lel=document.getElementById('q-lvl');
+    lel.textContent=`LVL ${lv}`;lel.style.color=lvlCols[lv]||'#00ff41';
+
+    this._typeCode(this.currentQ.code);
+    document.getElementById('ans-inp').value='';
+    document.getElementById('hint-line').textContent='';
+    document.getElementById('izone').className='izone';
+  },
+
+  _typeCode(txt){
+    if(this.typingTimer)clearTimeout(this.typingTimer);
+    const el=document.getElementById('q-code');
+    el.textContent='';el.classList.add('typing');
+    let i=0;const spd=txt.length>28?7:13;
+    const type=()=>{
+      if(i<=txt.length){el.textContent=txt.substring(0,i);i++;this.typingTimer=setTimeout(type,spd);}
+      else el.classList.remove('typing');
+    };type();
+  },
+
+  submit(){
+    if(!this.isPlaying||!this.currentQ)return;
+    const ans=document.getElementById('ans-inp').value.trim();
+    if(!ans)return;
+    SFX.init();
+    const correct=this.currentQ.ans.toLowerCase().trim();
+    if(ans.toLowerCase()===correct)this._onCorrect();
+    else this._onWrong();
+  },
+
+  _onCorrect(){
+    this.combo++;
+    const bonus=this.combo>=5?75:this.combo>=3?50:0;
+    const earned=150+bonus;
+    this.score+=earned;
+    SFX.correct();
+    if(this.combo%3===0&&this.combo>0){SFX.combo();this.timer+=10;SFX.bonus();toast('⏱ +10s TIME BONUS!','y');}
+    if(this.combo===5){this._updateHP(Math.min(100,this.hp+10));toast('🔥 COMBO ×5 → HP+10!','g');}
+    if(bonus>0)floatDmg(`+${earned} ×${this.combo}!`,'combo');
+    else floatDmg(`+${earned}`,'good');
+    burstEl(document.getElementById('monster'),this.lastMode==='SURVIVAL'?'#ff2d5b':'#00ff41',14);
+    const mon=document.getElementById('monster');
+    mon.classList.add('hit');setTimeout(()=>mon.classList.remove('hit'),180);
+    document.getElementById('izone').classList.add('ok');
+    this._updateHUD();
+    if(this.score>=this.winScore){setTimeout(()=>this._win(),300);return;}
+    setTimeout(()=>{document.getElementById('izone').classList.remove('ok');this._nextQ();document.getElementById('ans-inp').focus();},320);
+  },
+
+  _onWrong(){
+    this.combo=0;
+    this.hp=Math.max(0,this.hp-20);
+    SFX.wrong();
+    floatDmg('WRONG!','bad');
+    flash('#ff2d5b');
+    document.getElementById('izone').classList.add('wrong');
+    document.getElementById('ans-inp').value='';
+    this._updateHUD();
+    setTimeout(()=>document.getElementById('izone').classList.remove('wrong'),400);
+    if(this.hp<=0)setTimeout(()=>this._lose(),300);
+  },
+
+  useItem(item){
+    if(!this.isPlaying)return;
+    SFX.init();SFX.item();
+    if(item==='hint'&&this.hints>0){
+      this.hints--;this.score=Math.max(0,this.score-50);this._updateHUD();
+      const h=this.currentQ.ans.substring(0,Math.max(1,Math.ceil(this.currentQ.ans.length*.4)));
+      document.getElementById('hint-line').textContent=`💡 HINT: ${h}...`;
+      document.getElementById('ans-inp').value=h;document.getElementById('ans-inp').focus();
+      this._updatePups();
+    }else if(item==='potion'&&this.potions>0&&this.hp<100){
+      this.potions--;this._updateHP(Math.min(100,this.hp+30));
+      toast('💊 HP RESTORED +30%','g');this._updatePups();
+      floatDmg('+30 HP','good');
+    }else if(item==='skip'&&this.skips>0){
+      this.skips--;this.score=Math.max(0,this.score-100);this.combo=0;
+      this._updateHUD();this._updatePups();this._nextQ();
+      document.getElementById('ans-inp').focus();
+    }
+  },
+
+  _win(){
+    this.isPlaying=false;clearInterval(this.timerInterval);SFX.win();
+    flash('#ffd700');
+    this.saveLB({name:this.playerName,score:this.score,mode:this.lastMode});
+    updateChampion();
+    this._showEnd(true);
+  },
+  _lose(){
+    this.isPlaying=false;clearInterval(this.timerInterval);SFX.lose();
+    flash('#ff2d5b');
+    this.saveLB({name:this.playerName,score:this.score,mode:this.lastMode});
+    updateChampion();
+    this._showEnd(false);
+  },
+
+  playAgain(){
+    SFX.nav();
+    if(MP.active){showScene('s-lobby');}
+    else{G.startSolo(G.lastMode);}
+  },
+
+  _showEnd(won){
+    document.getElementById('end-title').textContent=won?'✓ MISSION COMPLETE':'SESSION END';
+    document.getElementById('end-title').className=won?'title win-text':'title danger-text';
+    document.getElementById('end-title').dataset.t=won?'MISSION COMPLETE':'SESSION END';
+    document.getElementById('end-name').textContent=this.playerName;
+    document.getElementById('end-score').textContent=this.score.toLocaleString();
+    document.getElementById('end-mode').textContent=this.lastMode;
+    document.getElementById('end-multi-sb').style.display='none';
+    document.getElementById('end-review').style.display='block';
+    const log=document.getElementById('review-log');log.innerHTML='';
+    this.sessionHistory.forEach((q,i)=>{
+      const d=document.createElement('div');d.className='ri';
+      d.innerHTML=`<div class="ri-num">Q${i+1} · LVL${q.level||1}</div><div class="ri-q">${q.text}</div><div class="ri-code">${q.code}</div><div class="ri-ans">▸ ANS: ${q.ans}</div><div class="ri-expl">💡 ${q.explanation}</div>`;
+      log.appendChild(d);
+    });
+    setTimeout(()=>showScene('s-end'),350);
+  },
+
+  _startTimer(){
+    clearInterval(this.timerInterval);
+    this.timerInterval=setInterval(()=>{
+      if(!this.isPlaying)return;
+      this.timer--;
+      const tbox=document.getElementById('hud-timer').closest('.hbox-b');
+      if(this.timer<=10){
+        tbox.classList.add('danger');
+        if(!this.lowTimePlayed||this.timer%2===0){SFX.lowtime();this.lowTimePlayed=true;}
+      }else tbox.classList.remove('danger');
+      document.getElementById('hud-timer').textContent=this.timer;
+      if(this.timer<=0)this._lose();
+    },1000);
+  },
+
+  _updateHUD(){
+    document.getElementById('hud-score').textContent=this.score.toLocaleString();
+    document.getElementById('hud-timer').textContent=this.timer;
+    const c=document.getElementById('hud-combo');
+    c.textContent=`×${this.combo}`;
+    c.style.color=this.combo>=5?'var(--p)':this.combo>=3?'var(--o)':'';
+    c.style.textShadow=this.combo>=5?'0 0 10px var(--p)':'';
+    this._updateHP(this.hp);
+  },
+  _updateHP(v){
+    this.hp=v;
+    const fill=document.getElementById('hp-fill');
+    fill.style.width=`${v}%`;
+    fill.style.background=v>60?'linear-gradient(90deg,var(--g),#00ff95)':v>30?'linear-gradient(90deg,var(--y),#ff9500)':'linear-gradient(90deg,var(--r),#ff6060)';
+    document.getElementById('hp-pct').textContent=`${v}%`;
+  },
+  _updatePups(){
+    const {hints,potions,skips}=this;
+    document.getElementById('btn-potion').innerHTML=`<span class="pi">💊</span>HP(${potions})`;
+    document.getElementById('btn-hint').innerHTML=`<span class="pi">💡</span>HINT(${hints})`;
+    document.getElementById('btn-skip').innerHTML=`<span class="pi">⏩</span>SKIP(${skips})`;
+    document.getElementById('btn-potion').disabled=!this.isPlaying||potions<=0;
+    document.getElementById('btn-hint').disabled=!this.isPlaying||hints<=0;
+    document.getElementById('btn-skip').disabled=!this.isPlaying||skips<=0;
+  },
+};
+
+// WIN/LOSE text CSS inline
+const headStyle=document.createElement('style');
+headStyle.textContent=`
+.win-text{color:var(--gold)!important;text-shadow:var(--sy)!important;animation:wp .8s infinite;}
+.danger-text{color:var(--r)!important;text-shadow:var(--sr)!important;}
+@keyframes wp{0%,100%{transform:scale(1);}50%{transform:scale(1.03);}}
+`;document.head.appendChild(headStyle);
+
+/* ═══════════════════════════════════════════════════════════
+   MULTIPLAYER ENGINE
+═══════════════════════════════════════════════════════════ */
+const MP={
+  socket:null,
+  active:false,
+  roomCode:null,
+  isHost:false,
+  myId:null,
+  myName:'',
+  isReady:false,
+  gameMode:null,
+  gameTimeLimit:60,
+
+  connect(){
+    if(this.socket&&this.socket.connected)return;
+    // Connect to same origin
+    this.socket=io({transports:['websocket','polling']});
+    this.myId=null;
+    this._bindEvents();
+  },
+
+  _bindEvents(){
+    const s=this.socket;
+    s.on('connect',()=>{
+      this.myId=s.id;
+      console.log('[CONNECTED]',s.id);
+    });
+    s.on('disconnect',()=>{
+      if(this.active){toast('การเชื่อมต่อขาด — กลับสู่เมนู','r');this._cleanup();showScene('s-menu');}
+    });
+    s.on('error_msg',msg=>toast(msg,'r'));
+    s.on('room_created',data=>{
+      this.roomCode=data.roomCode;this.isHost=true;this.active=true;
+      this.gameMode=data.mode;this.gameTimeLimit=data.timeLimit;
+      document.getElementById('lobby-code').textContent=data.roomCode;
+      document.getElementById('lobby-mode').textContent=data.mode;
+      document.getElementById('lobby-time').textContent=data.timeLimit;
+      document.getElementById('start-btn').style.display='block';
+      document.getElementById('ready-btn').style.display='none';
+      showScene('s-lobby');SFX.join();toast('ห้องสร้างแล้ว! แชร์รหัส','g');
+    });
+    s.on('room_joined',data=>{
+      this.roomCode=data.roomCode;this.isHost=false;this.active=true;
+      this.gameMode=data.mode;this.gameTimeLimit=data.timeLimit;
+      document.getElementById('lobby-code').textContent=data.roomCode;
+      document.getElementById('lobby-mode').textContent=data.mode;
+      document.getElementById('lobby-time').textContent=data.timeLimit;
+      document.getElementById('start-btn').style.display='none';
+      document.getElementById('ready-btn').style.display='block';
+      showScene('s-lobby');SFX.join();toast('เข้าร่วมสำเร็จ!','b');
+    });
+    s.on('you_are_host',()=>{
+      this.isHost=true;
+      document.getElementById('start-btn').style.display='block';
+      document.getElementById('ready-btn').style.display='none';
+      toast('คุณเป็น Host แล้ว','y');
+    });
+    s.on('room_update',data=>this._renderLobby(data));
+    s.on('chat_msg',data=>{
+      addChat(document.getElementById('lobby-chat'),data);
+      if(this.active&&document.getElementById('s-game').classList.contains('on')){
+        // ignore in-game for now
+      }
+    });
+    s.on('game_started',data=>{
+      SFX.nav();
+      G.playerName=this.myName;
+      G.lastMode=data.mode;
+      G.score=0;G.hp=100;G.combo=0;G.timer=data.timeLimit;G.isPlaying=true;
+      G.hints=data.defaultItems;G.potions=data.defaultItems;G.skips=data.defaultItems;
+      G.lowTimePlayed=false;
+
+      const mon=document.getElementById('monster');
+      mon.classList.toggle('boss',data.mode==='SURVIVAL');
+      G._clearBossRings();
+      if(data.mode==='SURVIVAL')G._addBossRings();
+
+      document.getElementById('hud-name').textContent=this.myName;
+      document.getElementById('live-sb').style.display='block';
+      G._updateHUD();G._updatePups();
+      document.getElementById('hint-line').textContent='';
+      document.getElementById('izone').className='izone';
+
+      // Set first question
+      if(data.question)this._setQuestion(data.question);
+      G.sessionHistory=[];
+      showScene('s-game');
+      document.getElementById('ans-inp').focus();
+      toast('GAME START!','g');flash('#00ff41');
+    });
+    s.on('timer_tick',({time})=>{
+      G.timer=time;
+      const tbox=document.getElementById('hud-timer').closest('.hbox-b');
+      if(time<=10){
+        tbox.classList.add('danger');
+        if(!G.lowTimePlayed||time%2===0){SFX.lowtime();G.lowTimePlayed=true;}
+      }else tbox.classList.remove('danger');
+      document.getElementById('hud-timer').textContent=time;
+    });
+    s.on('answer_result',data=>{
+      if(data.correct){
+        G.score=data.score;G.combo=data.combo;
+        SFX.correct();
+        if(data.combo%3===0&&data.combo>0){SFX.combo();SFX.bonus();toast('⏱ COMBO BONUS!','y');}
+        const bonus=data.earned-150;
+        if(bonus>0)floatDmg(`+${data.earned} ×${data.combo}!`,'combo');
+        else floatDmg(`+${data.earned}`,'good');
+        burstEl(document.getElementById('monster'),this.gameMode==='SURVIVAL'?'#ff2d5b':'#00ff41',12);
+        const mon=document.getElementById('monster');
+        mon.classList.add('hit');setTimeout(()=>mon.classList.remove('hit'),180);
+        document.getElementById('izone').classList.add('ok');
+        if(data.nextQuestion)this._setQuestion(data.nextQuestion);
+        G._updateHUD();
+        setTimeout(()=>{document.getElementById('izone').classList.remove('ok');document.getElementById('ans-inp').value='';document.getElementById('ans-inp').focus();},300);
+      }else{
+        G.hp=data.hp;G.combo=0;SFX.wrong();
+        floatDmg('WRONG!','bad');flash('#ff2d5b');
+        document.getElementById('izone').classList.add('wrong');
+        document.getElementById('ans-inp').value='';
+        G._updateHUD();
+        setTimeout(()=>document.getElementById('izone').classList.remove('wrong'),400);
+      }
+    });
+    s.on('item_used',data=>{
+      if(data.item==='hint'){
+        G.hints=data.hints;G.score=data.score;G._updateHUD();G._updatePups();
+        document.getElementById('hint-line').textContent=`💡 HINT: ${data.hint}...`;
+        document.getElementById('ans-inp').value=data.hint;document.getElementById('ans-inp').focus();
+      }else if(data.item==='potion'){
+        G.potions=data.potions;G._updateHP(data.hp);G._updatePups();
+        floatDmg('+30 HP','good');toast('💊 HP RESTORED','g');
+      }else if(data.item==='skip'){
+        G.skips=data.skips;G.score=data.score;G.combo=0;
+        G._updateHUD();G._updatePups();
+        if(data.nextQuestion)this._setQuestion(data.nextQuestion);
+        document.getElementById('ans-inp').value='';document.getElementById('ans-inp').focus();
+      }
+    });
+    s.on('player_won',data=>{
+      G.isPlaying=false;SFX.win();flash('#ffd700');
+      toast(`🏆 YOU WIN! Score: ${data.score.toLocaleString()}`,'y');
+    });
+    s.on('player_eliminated',data=>{
+      G.isPlaying=false;SFX.lose();flash('#ff2d5b');
+      toast('💀 ELIMINATED!','r');
+    });
+    s.on('score_update',sb=>this._renderLiveSB(sb));
+    s.on('game_ended',data=>{
+      G.isPlaying=false;clearInterval(G.timerInterval);
+      this._showMultiEnd(data.scoreboard);
+    });
+  },
+
+  _setQuestion(q){
+    if(!q)return;
+    G.currentQ=q;
+    document.getElementById('q-txt').textContent=q.text;
+    document.getElementById('q-mode').textContent=q.mode||this.gameMode;
+    const lvlCols=['','#00ff41','#00e5ff','#ffe500','#ff7b00','#c850ff','#ff2d5b','#ff2d5b'];
+    const lv=q.level||1;
+    const lel=document.getElementById('q-lvl');
+    lel.textContent=`LVL ${lv}`;lel.style.color=lvlCols[lv]||'#00ff41';
+    G._typeCode(q.code);
+    document.getElementById('hint-line').textContent='';
+    document.getElementById('izone').className='izone';
+    if(!G.sessionHistory.find(x=>x.id===q.id))G.sessionHistory.push(q);
+  },
+
+  _renderLobby(data){
+    const cnt=document.getElementById('lobby-count');
+    const pl=document.getElementById('lobby-players');
+    cnt.textContent=`${data.players.length}/8 players`;
+    pl.innerHTML='';
+    data.players.forEach(p=>{
+      const isMe=p.socketId===this.myId;
+      const isH=p.socketId===data.hostId;
+      const d=document.createElement('div');d.className='lp-item';
+      d.innerHTML=`
+        <span>
+          <span class="lp-name">${p.name}</span>
+          ${isMe?'<span class="lp-you">[YOU]</span>':''}
+          ${isH?'<span class="lp-host">👑HOST</span>':''}
+        </span>
+        <span class="lp-ready ${isH||p.ready?'yes':'no'}">${isH?'HOST':p.ready?'✓ READY':'WAITING'}</span>
+      `;
+      pl.appendChild(d);
+    });
+  },
+
+  _renderLiveSB(sb){
+    const el=document.getElementById('live-sb');el.innerHTML='';
+    sb.slice(0,4).forEach((p,i)=>{
+      const isMe=p.socketId===this.myId;
+      const d=document.createElement('div');
+      d.className=`lsb-row${isMe?' me':''}`;
+      d.innerHTML=`<span class="lsb-rank">${i+1}</span><span class="lsb-name">${p.name}</span><span class="lsb-score">${p.score.toLocaleString()}</span><span class="lsb-hp">${p.hp}%</span>${p.done?'<span class="lsb-done">DONE</span>':''}`;
+      el.appendChild(d);
+    });
+  },
+
+  _showMultiEnd(sb){
+    document.getElementById('end-title').textContent='FINAL RESULTS';
+    document.getElementById('end-title').className='title win-text';
+    const me=sb.find(p=>p.socketId===this.myId)||{name:this.myName,score:G.score};
+    document.getElementById('end-name').textContent=me.name;
+    document.getElementById('end-score').textContent=me.score.toLocaleString();
+    document.getElementById('end-mode').textContent=this.gameMode;
+    document.getElementById('end-review').style.display='none';
+    document.getElementById('end-multi-sb').style.display='block';
+    const list=document.getElementById('end-sb-list');list.innerHTML='';
+    const icons=['🥇','🥈','🥉'];
+    sb.forEach((p,i)=>{
+      const isMe=p.socketId===this.myId;
+      const d=document.createElement('div');
+      d.className=`esb-row${isMe?' me':''}`;
+      const rc=i===0?'r1':i===1?'r2':i===2?'r3':'';
+      d.innerHTML=`<div class="esb-rank ${rc}">${icons[i]||i+1}</div><div class="esb-name">${p.name}${isMe?' <span style="color:var(--g);font-size:.6rem;">[YOU]</span>':''}</div><div class="esb-score">${p.score.toLocaleString()}</div><div class="esb-badge">${p.done?'DONE':''}</div>`;
+      list.appendChild(d);
+    });
+    SFX.win();flash('#ffd700');
+    setTimeout(()=>showScene('s-end'),400);
+  },
+
+  submit(){
+    if(!this.socket||!G.currentQ)return;
+    const ans=document.getElementById('ans-inp').value.trim();
+    if(!ans)return;
+    SFX.init();
+    this.socket.emit('submit_answer',{answer:ans});
+  },
+
+  useItem(item){
+    if(!this.socket)return;
+    SFX.init();SFX.item();
+    this.socket.emit('use_item',{item});
+  },
+
+  _cleanup(){
+    this.active=false;this.roomCode=null;this.isHost=false;this.isReady=false;
+  },
+};
+
+/* ─── MULTIPLAYER UI ACTIONS ────────────────────────────── */
+function showJoinPanel(){
+  SFX.click();
+  const jp=document.getElementById('join-panel');
+  jp.style.display=jp.style.display==='none'?'block':'none';
+  if(jp.style.display==='block')document.getElementById('room-code-inp').focus();
+}
+
+function createRoom(){
+  SFX.nav();
+  const n=document.getElementById('name-multi').value.trim();
+  if(!n){toast('ใส่ชื่อก่อน!','r');document.getElementById('name-multi').focus();return;}
+  MP.myName=n.toUpperCase().slice(0,12);
+  MP.connect();
+  const t=getSelectedTime();
+  // อัปเดตเมนูเลือกให้มีครบ 8 หมวด
+  _showModePickerForMP((mode)=>{
+    MP.socket.emit('create_room',{playerName:MP.myName,mode,timeLimit:t});
+  });
+}
+
+function joinRoom(){
+  SFX.nav();
+  const n=document.getElementById('name-multi').value.trim();
+  const code=document.getElementById('room-code-inp').value.trim().toUpperCase();
+  if(!n){toast('ใส่ชื่อก่อน!','r');return;}
+  if(code.length!==5){toast('รหัสต้อง 5 ตัว!','r');return;}
+  MP.myName=n.toUpperCase().slice(0,12);
+  MP.connect();
+  setTimeout(()=>{
+    MP.socket.emit('join_room',{playerName:MP.myName,roomCode:code});
+  },300);
+}
+
+// Quick mode picker modal (อัปเดตเพิ่มหมวดใหม่)
+function _showModePickerForMP(cb){
+  const ol=document.createElement('div');
+  ol.style.cssText=`position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.85);display:flex;justify-content:center;align-items:center;padding:20px;`;
+  const box=document.createElement('div');
+  box.style.cssText=`background:var(--glass);border:1px solid var(--g);padding:20px;max-width:460px;width:100%;`;
+  box.innerHTML=`
+    <div style="font-family:var(--font1);font-size:.85rem;color:var(--g);letter-spacing:3px;margin-bottom:14px;text-align:center;">SELECT MODE FOR ROOM</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      ${['BASICS','LOGIC','LOOPS','DATA','FUNC','OOP','DATABASE','FILE','SURVIVAL'].map(m=>`
+        <button onclick="this.closest('.mpp').dataset.mode='${m}';document.querySelectorAll('.mpp-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on');" 
+          style="background:rgba(0,255,65,.04);border:1px solid rgba(0,255,65,.2);color:#fff;padding:10px;font-family:var(--font2);font-size:.75rem;letter-spacing:2px;cursor:pointer;transition:.2s;"
+          class="mpp-btn${m==='SURVIVAL'?' btn-red':''}">${m}</button>
+      `).join('')}
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="const m=this.closest('.mpp').dataset.mode||'BASICS';document.body.removeChild(this.closest('.mpp-ov'));cb(m);" 
+        style="flex:1;background:rgba(0,255,65,.1);border:1px solid var(--g);color:var(--g);padding:11px;font-family:var(--font1);font-size:.78rem;letter-spacing:2px;cursor:pointer;">✓ CREATE ROOM</button>
+      <button onclick="document.body.removeChild(this.closest('.mpp-ov'));"
+        style="background:transparent;border:1px solid var(--border);color:var(--dim);padding:11px 16px;font-family:var(--font2);font-size:.75rem;cursor:pointer;">✕</button>
+    </div>
+  `;
+  box.className='mpp';box.dataset.mode='BASICS';
+  ol.className='mpp-ov';ol.appendChild(box);
+  document.body.appendChild(ol);
+  ol.addEventListener('click',e=>{if(e.target===ol)document.body.removeChild(ol);});
+  window.__mpCb=cb;
+  box.querySelectorAll('button').forEach(btn=>{
+    const orig=btn.getAttribute('onclick');
+    if(orig&&orig.includes('cb(m)'))btn.setAttribute('onclick',orig.replace('cb(m)','window.__mpCb(m)'));
+  });
+}
+
+function toggleReady(){
+  SFX.click();
+  if(!MP.socket)return;
+  MP.isReady=!MP.isReady;
+  const btn=document.getElementById('ready-btn');
+  btn.textContent=MP.isReady?'[ ✓ READY! ]':'[ READY ]';
+  btn.style.borderColor=MP.isReady?'var(--g)':'';
+  btn.style.color=MP.isReady?'var(--g)':'';
+  if(MP.isReady)btn.style.boxShadow='var(--sg)';else btn.style.boxShadow='';
+  MP.socket.emit('player_ready');
+}
+
+function startGame(){
+  SFX.nav();
+  if(!MP.socket||!MP.isHost)return;
+  MP.socket.emit('start_game');
+}
+
+function leaveRoom(){
+  SFX.click();
+  if(MP.socket)MP.socket.disconnect();
+  MP._cleanup();
+  showScene('s-menu');
+}
+
+function copyCode(){
+  const code=document.getElementById('lobby-code').textContent;
+  navigator.clipboard?.writeText(code).then(()=>toast('คัดลอกรหัสแล้ว! '+code,'g')).catch(()=>toast(code,'b'));
+}
+
+function sendChat(ctx){
+  SFX.click();
+  const inp=document.getElementById(`chat-inp-${ctx}`);
+  const msg=inp.value.trim();
+  if(!msg||!MP.socket)return;
+  MP.socket.emit('send_chat',{text:msg});
+  inp.value='';
+}
+document.getElementById('chat-inp-lobby').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat('lobby');});
+
+/* ─── GAME INPUT SUBMIT BRIDGE ──────────────────────────── */
+document.getElementById('ans-inp').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    if(MP.active&&G.isPlaying)MP.submit();
+    else G.submit();
+  }
+});
+document.querySelector('.fire-btn').addEventListener('click',()=>{
+  if(MP.active&&G.isPlaying)MP.submit();
+  else G.submit();
+});
+
+// Override useItem for multiplayer
+const origUseItem=G.useItem.bind(G);
+G.useItem=function(item){
+  if(MP.active&&G.isPlaying)MP.useItem(item);
+  else origUseItem(item);
+};
+
+/* ─── INIT ──────────────────────────────────────────────── */
+updateChampion();
+
+/* ─── SOLO QUESTIONS (client-side for solo mode) ─────────── */
+const SOLO_QUESTIONS=[
+  {id:101,mode:'BASICS',level:1,text:"คำสั่งแสดงผลออกหน้าจอ",code:"____('Hello World')",ans:"print",explanation:"print() ใช้แสดงผล"},
+  {id:102,mode:'BASICS',level:1,text:"รับค่าจากผู้ใช้",code:"name = ____('Enter: ')",ans:"input",explanation:"input() รับค่าจากผู้ใช้"},
+  {id:103,mode:'BASICS',level:1,text:"แปลงข้อความเป็นจำนวนเต็ม",code:"score = ____('50')",ans:"int",explanation:"int() แปลงเป็น integer"},
+  {id:104,mode:'BASICS',level:1,text:"แปลงตัวเลขเป็นข้อความ",code:"msg = 'Age: ' + ____(20)",ans:"str",explanation:"str() แปลงเป็น string"},
+  {id:105,mode:'BASICS',level:1,text:"ตรวจสอบชนิดตัวแปร",code:"____(3.14)",ans:"type",explanation:"type() ดูชนิดข้อมูล"},
+  {id:106,mode:'BASICS',level:1,text:"ตัวเลขทศนิยม",code:"price = 99.5  # ชนิด ____",ans:"float",explanation:"float = เลขทศนิยม"},
+  {id:107,mode:'BASICS',level:1,text:"ค่าความจริง 'เท็จ'",code:"flag = ____",ans:"False",explanation:"Boolean ต้องตัวใหญ่"},
+  {id:108,mode:'BASICS',level:1,text:"ค่าความจริง 'จริง'",code:"flag = ____",ans:"True",explanation:"Boolean ต้องตัวใหญ่"},
+  {id:109,mode:'BASICS',level:1,text:"สัญลักษณ์ Comment",code:"____ This is comment",ans:"#",explanation:"# ใช้เขียน comment"},
+  {id:110,mode:'BASICS',level:1,text:"ลบตัวแปร",code:"____ my_var",ans:"del",explanation:"del ลบตัวแปร"},
+  {id:111,mode:'BASICS',level:1,text:"กำหนดค่าตัวแปร",code:"x ____ 10",ans:"=",explanation:"= กำหนดค่า"},
+  {id:112,mode:'BASICS',level:1,text:"บวกเลข",code:"5 ____ 3",ans:"+",explanation:"+ บวก"},
+  {id:113,mode:'BASICS',level:1,text:"ลบเลข",code:"10 ____ 4",ans:"-",explanation:"- ลบ"},
+  {id:114,mode:'BASICS',level:1,text:"คูณเลข",code:"6 ____ 2",ans:"*",explanation:"* คูณ"},
+  {id:115,mode:'BASICS',level:1,text:"หารเลข",code:"8 ____ 2",ans:"/",explanation:"/ หาร"},
+  {id:116,mode:'BASICS',level:1,text:"หารปัดเศษทิ้ง",code:"9 ____ 2",ans:"//",explanation:"// floor division"},
+  {id:117,mode:'BASICS',level:1,text:"หาเศษจากการหาร",code:"10 ____ 3",ans:"%",explanation:"% modulo"},
+  {id:118,mode:'BASICS',level:1,text:"ยกกำลัง",code:"2 ____ 3",ans:"**",explanation:"** ยกกำลัง"},
+  {id:119,mode:'BASICS',level:1,text:"แปลงเป็นทศนิยม",code:"price = ____(10)",ans:"float",explanation:"float() แปลงเป็น float"},
+  {id:120,mode:'BASICS',level:1,text:"รับตัวเลขจากผู้ใช้",code:"age = ____(input())",ans:"int",explanation:"ต้อง wrap ด้วย int()"},
+  {id:221,mode:'LOGIC',level:2,text:"คำสั่งตรวจสอบเงื่อนไข",code:"____ x > 10:",ans:"if",explanation:"if ตรวจสอบเงื่อนไข"},
+  {id:222,mode:'LOGIC',level:2,text:"เงื่อนไขเพิ่มเติม",code:"____ x > 5:",ans:"elif",explanation:"elif ตรวจเมื่อ if เป็น False"},
+  {id:223,mode:'LOGIC',level:2,text:"กรณีสุดท้าย",code:"____:",ans:"else",explanation:"else ทำเมื่อทุกเงื่อนไขเป็น False"},
+  {id:224,mode:'LOGIC',level:2,text:"เปรียบเทียบ 'เท่ากับ'",code:"if x ____ 10:",ans:"==",explanation:"== เปรียบเทียบค่า"},
+  {id:225,mode:'LOGIC',level:2,text:"เปรียบเทียบ 'ไม่เท่า'",code:"if x ____ 0:",ans:"!=",explanation:"!= ไม่เท่ากับ"},
+  {id:226,mode:'LOGIC',level:2,text:"มากกว่า",code:"if score ____ 80:",ans:">",explanation:"> มากกว่า"},
+  {id:227,mode:'LOGIC',level:2,text:"น้อยกว่า",code:"if score ____ 50:",ans:"<",explanation:"< น้อยกว่า"},
+  {id:228,mode:'LOGIC',level:2,text:"มากกว่าหรือเท่ากับ",code:"if age ____ 18:",ans:">=",explanation:">= มากกว่าหรือเท่ากับ"},
+  {id:229,mode:'LOGIC',level:2,text:"น้อยกว่าหรือเท่ากับ",code:"if score ____ 60:",ans:"<=",explanation:"<= น้อยกว่าหรือเท่ากับ"},
+  {id:230,mode:'LOGIC',level:2,text:"ตรรกะ 'และ'",code:"if a > 0 ____ b > 0:",ans:"and",explanation:"and ทั้งสองต้องจริง"},
+  {id:231,mode:'LOGIC',level:2,text:"ตรรกะ 'หรือ'",code:"if a > 0 ____ b > 0:",ans:"or",explanation:"or หนึ่งในนั้นจริง"},
+  {id:232,mode:'LOGIC',level:2,text:"กลับค่าความจริง",code:"if ____ done:",ans:"not",explanation:"not กลับค่า bool"},
+  {id:233,mode:'LOGIC',level:2,text:"ตรวจสอบสมาชิก",code:"if 'a' ____ ['a','b']:",ans:"in",explanation:"in ตรวจสอบสมาชิก"},
+  {id:234,mode:'LOGIC',level:2,text:"ตรวจสอบว่าไม่อยู่ในกลุ่ม",code:"if 'x' ____ lst:",ans:"not in",explanation:"not in ตรวจสอบว่าไม่มี"},
+  {id:235,mode:'LOGIC',level:2,text:"ตรวจสอบชนิดข้อมูล",code:"____(x, int)",ans:"isinstance",explanation:"isinstance ตรวจชนิด"},
+  {id:236,mode:'LOGIC',level:2,text:"ตรวจสอบ None",code:"if x ____ None:",ans:"is",explanation:"is ใช้กับ None"},
+  {id:237,mode:'LOGIC',level:2,text:"ตรวจสอบว่าไม่ใช่ None",code:"if x ____ None:",ans:"is not",explanation:"is not ไม่ใช่ None"},
+  {id:341,mode:'LOOPS',level:3,text:"วนซ้ำแบบรู้จำนวนรอบ",code:"____ i in range(10):",ans:"for",explanation:"for วนซ้ำ"},
+  {id:342,mode:'LOOPS',level:3,text:"สร้างชุดตัวเลข 0 ถึง 4",code:"for i in ____(5):",ans:"range",explanation:"range สร้างลำดับตัวเลข"},
+  {id:343,mode:'LOOPS',level:3,text:"วนซ้ำตามเงื่อนไข",code:"____ hp > 0:",ans:"while",explanation:"while วนจนเงื่อนไขเป็น False"},
+  {id:344,mode:'LOOPS',level:3,text:"หยุดลูปทันที",code:"if dead: ____",ans:"break",explanation:"break ออกจากลูป"},
+  {id:345,mode:'LOOPS',level:3,text:"ข้ามรอบปัจจุบัน",code:"if skip: ____",ans:"continue",explanation:"continue ข้ามไปรอบถัดไป"},
+  {id:346,mode:'LOOPS',level:3,text:"วนซ้ำใน string",code:"for char ____ 'Python':",ans:"in",explanation:"in ระบุลำดับ"},
+  {id:347,mode:'LOOPS',level:3,text:"range จาก 1 ถึง 3",code:"range(1, ____)",ans:"4",explanation:"stop ไม่รวม ต้องใส่ 4"},
+  {id:348,mode:'LOOPS',level:3,text:"ลูปไม่สิ้นสุด",code:"while ____:",ans:"True",explanation:"while True = infinite loop"},
+  {id:349,mode:'LOOPS',level:3,text:"วนซ้ำพร้อม index",code:"for i,v in ____(['a','b']):",ans:"enumerate",explanation:"enumerate คืน index+value"},
+  {id:350,mode:'LOOPS',level:3,text:"เพิ่มค่าตัวแปร",code:"count ____ 1",ans:"+=",explanation:"+= เพิ่มค่า"},
+  {id:351,mode:'LOOPS',level:3,text:"ลดค่าตัวแปร",code:"count ____ 1",ans:"-=",explanation:"-= ลดค่า"},
+  {id:352,mode:'LOOPS',level:3,text:"วนย้อนกลับ",code:"range(10,0,____)",ans:"-1",explanation:"step=-1 นับถอยหลัง"},
+  {id:353,mode:'LOOPS',level:3,text:"ตรวจสอบเลขคู่",code:"if i%2 ____ 0:",ans:"==",explanation:"เศษ 0 = เลขคู่"},
+  {id:354,mode:'LOOPS',level:3,text:"list comprehension",code:"[x*x ____ x in range(5)]",ans:"for",explanation:"for ใน comprehension"},
+  {id:461,mode:'DATA',level:4,text:"สร้าง list",code:"nums = ____1, 2, 3____",ans:"[]",explanation:"[] สร้าง list"},
+  {id:462,mode:'DATA',level:4,text:"เข้าถึงตัวแรกของ list",code:"print(nums[____])",ans:"0",explanation:"index เริ่มที่ 0"},
+  {id:463,mode:'DATA',level:4,text:"เพิ่มข้อมูลใน list",code:"nums.____(40)",ans:"append",explanation:"append เพิ่มท้าย"},
+  {id:464,mode:'DATA',level:4,text:"ลบและดึงตัวสุดท้าย",code:"nums.____()",ans:"pop",explanation:"pop ลบตัวสุดท้าย"},
+  {id:465,mode:'DATA',level:4,text:"หาความยาว",code:"____(nums)",ans:"len",explanation:"len หาความยาว"},
+  {id:466,mode:'DATA',level:4,text:"เรียงลำดับ",code:"nums.____()",ans:"sort",explanation:"sort เรียงจากน้อยไปมาก"},
+  {id:467,mode:'DATA',level:4,text:"กลับลำดับ",code:"nums.____()",ans:"reverse",explanation:"reverse กลับลำดับ"},
+  {id:468,mode:'DATA',level:4,text:"ตรวจสอบสมาชิก",code:"if 2 ____ nums:",ans:"in",explanation:"in ตรวจสมาชิก"},
+  {id:469,mode:'DATA',level:4,text:"สร้าง dictionary",code:"d = ____'k':'v'____",ans:"{}",explanation:"{} สร้าง dict"},
+  {id:470,mode:'DATA',level:4,text:"วนลูป key-value",code:"for k,v in d.____():",ans:"items",explanation:"items() คืนคู่ key-value"},
+  {id:471,mode:'DATA',level:4,text:"สร้าง set",code:"s = ____(nums)",ans:"set",explanation:"set ไม่ซ้ำ"},
+  {id:472,mode:'DATA',level:4,text:"เพิ่มใน set",code:"s.____(3)",ans:"add",explanation:"add เพิ่มใน set"},
+  {id:473,mode:'DATA',level:4,text:"หาค่าสูงสุด",code:"m = ____(nums)",ans:"max",explanation:"max ค่าสูงสุด"},
+  {id:474,mode:'DATA',level:4,text:"หาค่าต่ำสุด",code:"m = ____(nums)",ans:"min",explanation:"min ค่าต่ำสุด"},
+  {id:581,mode:'FUNC',level:5,text:"สร้างฟังก์ชัน",code:"____ greet():",ans:"def",explanation:"def สร้างฟังก์ชัน"},
+  {id:582,mode:'FUNC',level:5,text:"ส่งค่ากลับ",code:"____ a + b",ans:"return",explanation:"return ส่งค่ากลับ"},
+  {id:583,mode:'FUNC',level:5,text:"Import โมดูล",code:"____ math",ans:"import",explanation:"import นำเข้าโมดูล"},
+  {id:584,mode:'FUNC',level:5,text:"ตั้งชื่อย่อโมดูล",code:"import math ____ m",ans:"as",explanation:"as ตั้งชื่อเล่น"},
+  {id:585,mode:'FUNC',level:5,text:"ฟังก์ชัน lambda",code:"sq = ____ x: x*x",ans:"lambda",explanation:"lambda ฟังก์ชันสั้น"},
+  {id:586,mode:'FUNC',level:5,text:"ฟังก์ชันไม่มีโค้ด",code:"def test(): ____",ans:"pass",explanation:"pass ไม่ทำอะไร"},
+  {id:587,mode:'FUNC',level:5,text:"*args",code:"def f(____nums):",ans:"*",explanation:"* รับ args เป็น tuple"},
+  {id:588,mode:'FUNC',level:5,text:"**kwargs",code:"def f(____data):",ans:"**",explanation:"** รับ kwargs เป็น dict"},
+  {id:589,mode:'FUNC',level:5,text:"global variable",code:"____ x",ans:"global",explanation:"global แก้ตัวแปร global"},
+  {id:590,mode:'FUNC',level:5,text:"import เฉพาะฟังก์ชัน",code:"from math ____ sqrt",ans:"import",explanation:"from...import"},
+  {id:601,mode:'OOP',level:5,text:"สร้างคลาส",code:"____ Person:",ans:"class",explanation:"class สร้าง blueprint"},
+  {id:602,mode:'OOP',level:5,text:"Constructor",code:"def ____(self):",ans:"__init__",explanation:"__init__ ทำงานเมื่อสร้าง object"},
+  {id:603,mode:'OOP',level:5,text:"พารามิเตอร์ self",code:"def greet(____):",ans:"self",explanation:"self = object ปัจจุบัน"},
+  {id:604,mode:'OOP',level:5,text:"สร้าง object",code:"p = ____()",ans:"Person",explanation:"ใช้ชื่อคลาส()"},
+  {id:605,mode:'OOP',level:5,text:"Inheritance",code:"class Student(____):",ans:"Person",explanation:"สืบทอดจาก Person"},
+  {id:606,mode:'OOP',level:5,text:"เรียก parent constructor",code:"____().__init__(name)",ans:"super",explanation:"super() เรียกคลาสแม่"},
+  {id:607,mode:'OOP',level:5,text:"__str__ method",code:"def ____(self):",ans:"__str__",explanation:"__str__ แสดงข้อความ"},
+  {id:608,mode:'OOP',level:5,text:"property decorator",code:"@____",ans:"property",explanation:"@property เรียกเหมือน attribute"},
+  
+  // DATABASE Level 6 (NEW)
+  { id:801, mode:'DATABASE', level:6, text:"เชื่อมต่อฐานข้อมูล SQLite", code:"sqlite3.____('data.db')", ans:"connect", explanation:"connect() ใช้เชื่อมต่อฐานข้อมูล" },
+  { id:802, mode:'DATABASE', level:6, text:"สร้าง Cursor", code:"c = conn.____()", ans:"cursor", explanation:"cursor() เป็นตัวจัดการคำสั่ง SQL" },
+  { id:803, mode:'DATABASE', level:6, text:"รันคำสั่ง SQL", code:"c.____('SELECT * FROM users')", ans:"execute", explanation:"execute() สั่งรัน SQL" },
+  { id:804, mode:'DATABASE', level:6, text:"บันทึกข้อมูล (Commit)", code:"conn.____()", ans:"commit", explanation:"commit() ยืนยันการเปลี่ยนแปลงใน DB" },
+  { id:805, mode:'DATABASE', level:6, text:"ดึงข้อมูลทั้งหมด", code:"rows = c.____()", ans:"fetchall", explanation:"fetchall() ดึงทุกแถวเป็น List" },
+  { id:806, mode:'DATABASE', level:6, text:"ดึงข้อมูล 1 แถว", code:"row = c.____()", ans:"fetchone", explanation:"fetchone() ดึงข้อมูลแค่แถวเดียว" },
+  { id:807, mode:'DATABASE', level:6, text:"ปิดการเชื่อมต่อ", code:"conn.____()", ans:"close", explanation:"close() ปิดฐานข้อมูล" },
+
+  // FILE I/O Level 6 (NEW)
+  { id:901, mode:'FILE', level:6, text:"เปิดไฟล์โหมดอ่าน", code:"f = ____('data.txt', 'r')", ans:"open", explanation:"open() ใช้เปิดไฟล์" },
+  { id:902, mode:'FILE', level:6, text:"อ่านไฟล์ทั้งหมด", code:"txt = f.____()", ans:"read", explanation:"read() อ่านเนื้อหาทั้งหมด" },
+  { id:903, mode:'FILE', level:6, text:"อ่านไฟล์ทีละบรรทัด", code:"line = f.____()", ans:"readline", explanation:"readline() อ่าน 1 บรรทัด" },
+  { id:904, mode:'FILE', level:6, text:"เขียนข้อมูลลงไฟล์", code:"f.____('Hello')", ans:"write", explanation:"write() เขียนข้อความลงไฟล์" },
+  { id:905, mode:'FILE', level:6, text:"ปิดไฟล์", code:"f.____()", ans:"close", explanation:"close() คืนหน่วยความจำ" },
+  { id:906, mode:'FILE', level:6, text:"เปิดไฟล์ด้วย Context", code:"____ open('f.txt') as f:", ans:"with", explanation:"with จะจัดการปิดไฟล์ให้อัตโนมัติ" },
+
+  // Advanced Level 7 (SURVIVAL)
+  {id:701,mode:'LOGIC',level:7,text:"AND เงื่อนไขสองข้อ",code:"if x%2==0 ____ x>10:",ans:"and",explanation:"and เชื่อม 2 เงื่อนไข"},
+  {id:702,mode:'LOGIC',level:7,text:"ตรวจสอบว่าไม่ว่างเปล่า",code:"if ____ name:",ans:"not",explanation:"not กลับค่า"},
+  {id:703,mode:'LOOPS',level:7,text:"ลูปถอยหลังทีละ 2",code:"range(10,0,____)",ans:"-2",explanation:"step=-2"},
+  {id:704,mode:'LOGIC',level:7,text:"ตรวจสอบหลายชนิดพร้อมกัน",code:"isinstance(x,____)",ans:"(int, float)",explanation:"ส่ง tuple ชนิดข้อมูล"},
+  {id:705,mode:'FUNC',level:7,text:"Return หลายค่า",code:"return a ____ b",ans:",",explanation:"คั่นด้วย comma"},
+  {id:706,mode:'FUNC',level:7,text:"Recursive function",code:"return n * ____(n-1)",ans:"fact",explanation:"เรียกตัวเอง"},
+  {id:707,mode:'DATA',level:7,text:"List comprehension with if",code:"[x for x in r ____ x>0]",ans:"if",explanation:"if ใน comprehension"},
+  {id:708,mode:'DATA',level:7,text:"Sort reverse",code:"nums.sort(reverse=____)",ans:"True",explanation:"reverse=True"},
+  {id:709,mode:'DATA',level:7,text:"ลบ key จาก dict",code:"data.____('age')",ans:"pop",explanation:"pop ลบ key"},
+  {id:710,mode:'DATA',level:7,text:"แปลง tuple เป็น list",code:"lst = ____(t)",ans:"list",explanation:"list() แปลง"},
+  {id:711,mode:'FUNC',level:7,text:"nonlocal scope",code:"____ x",ans:"nonlocal",explanation:"nonlocal แก้ตัวแปรชั้นนอก"},
+  {id:712,mode:'FUNC',level:7,text:"Decorator",code:"____timer",ans:"@",explanation:"@ decorator"},
+  {id:713,mode:'FUNC',level:7,text:"Generator yield",code:"____ 1",ans:"yield",explanation:"yield สร้าง generator"},
+  {id:714,mode:'FUNC',level:7,text:"Type annotation return",code:"def f(a:int) ____ int:",ans:"->",explanation:"-> บอกชนิดค่าคืน"},
+  {id:715,mode:'DATA',level:7,text:"Dict comprehension",code:"{x:x*x ____ x in r}",ans:"for",explanation:"for ใน dict comprehension"},
+  {id:716,mode:'DATA',level:7,text:"Zip สองลิสต์",code:"list(____(a,b))",ans:"zip",explanation:"zip รวมตามตำแหน่ง"},
+  {id:717,mode:'DATA',level:7,text:"Deep copy",code:"b = copy.____(a)",ans:"deepcopy",explanation:"deepcopy คัดลอกซ้อน"},
+  {id:718,mode:'DATA',level:7,text:"Frozen set",code:"s = ____([1,2,3])",ans:"frozenset",explanation:"frozenset ไม่แก้ได้"},
+  {id:719,mode:'LOGIC',level:7,text:"XOR operator",code:"if a ____ b:",ans:"^",explanation:"^ XOR"},
+  {id:720,mode:'LOOPS',level:7,text:"Walrus in while",code:"while (l:=input()) ____ 'q':",ans:"!=",explanation:"!= ไม่เท่ากับ"},
+];
+</script>
+</body>
+</html>

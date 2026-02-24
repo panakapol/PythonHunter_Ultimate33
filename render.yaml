@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: python-hunter-ultimate
+    env: node
+    buildCommand: npm install
+    startCommand: node server/server.js
+    envVars:
+      - key: PORT
+        value: 10000
+    autoDeploy: true
