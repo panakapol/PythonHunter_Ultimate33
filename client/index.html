@@ -369,6 +369,7 @@
 <script>
 /* ============================================================
    PYTHON HUNTER v4 — CLIENT JS
+   Full rewrite: Solo + Multiplayer (Socket.IO)
    ============================================================ */
 
 (function(){
@@ -536,6 +537,14 @@ function showLeaderboard(){
   showScene('s-lb');
 }
 
+function updateChampion(){
+  const lb=G.loadLB();
+  if(lb.length){
+    document.getElementById('cname').textContent=lb[0].name;
+    document.getElementById('cscore').textContent=lb[0].score.toLocaleString();
+  }
+}
+
 function sortAndShuffleByLevel(pool) {
   const grouped = {};
   pool.forEach(q => {
@@ -560,6 +569,7 @@ const G={
   questions:[],qIdx:0, currentQ:null, sessionHistory:[],
   hints:1,potions:1,skips:1, winScore:800,defaultItems:1,
   isPlaying:false, timerInterval:null, typingTimer:null, lowTimePlayed:false, lastMode:'BASICS',
+  gameEnded: false, // FIX: ตัวแปรเช็คสถานะว่าเกมจบหรือยัง ป้องกันบักเรียก _lose/_win ซ้อนกัน
 
   loadLB(){
     try{return JSON.parse(localStorage.getItem('ph_lb_v4'))||[];}catch(e){return[];}
@@ -582,6 +592,8 @@ const G={
     this.score=0; this.hp=100; this.timer=this.selectedTime; this.combo=0;
     this.sessionHistory=[]; this.isPlaying=false; this.lowTimePlayed=false;
     this.hints=cfg.items; this.potions=cfg.items; this.skips=cfg.items;
+    
+    this.gameEnded = false; // รีเซ็ตสถานะทุกครั้งที่เริ่มใหม่
 
     let pool=modeKey==='SURVIVAL' ? SOLO_QUESTIONS.filter(q=>q.level>=6) : SOLO_QUESTIONS.filter(q=>q.mode===modeKey);
     if(!pool.length)pool=SOLO_QUESTIONS;
@@ -619,7 +631,6 @@ const G={
     }
     this.currentQ=this.questions[this.qIdx%this.questions.length]; this.qIdx++;
     
-    // FIX: ป้องกันการบันทึกประวัติซ้ำซ้อนอย่างปลอดภัย
     if(!this.sessionHistory.find(x=>x.id===this.currentQ.id)) this.sessionHistory.push(this.currentQ); 
 
     document.getElementById('q-txt').textContent=this.currentQ.text; document.getElementById('q-mode').textContent=this.currentQ.mode;
@@ -637,7 +648,7 @@ const G={
     let i=0; const strTxt = String(txt); const spd=strTxt.length>30?5:15;
     
     const type=()=>{
-      if(!this.isPlaying) { el.classList.remove('typing'); return; }
+      if(!this.isPlaying || this.gameEnded) { el.classList.remove('typing'); return; }
       if(i<=strTxt.length){
         el.textContent=strTxt.substring(0,i); i++; this.typingTimer=setTimeout(type,spd);
       } else { el.classList.remove('typing'); }
@@ -646,7 +657,7 @@ const G={
   },
 
   submit(){
-    if(!this.isPlaying||!this.currentQ)return;
+    if(!this.isPlaying||!this.currentQ || this.gameEnded)return;
     const ans=document.getElementById('ans-inp').value.trim(); if(!ans)return;
     SFX.init(); const correct=this.currentQ.ans.toLowerCase().trim();
     if(ans.toLowerCase()===correct)this._onCorrect(); else this._onWrong();
@@ -662,14 +673,16 @@ const G={
     const mon=document.getElementById('monster'); mon.classList.add('hit');setTimeout(()=>mon.classList.remove('hit'),180);
     document.getElementById('izone').classList.add('ok'); this._updateHUD();
     
-    // FIX: โหมด Solo จบเมื่อคะแนนถึง winScore ป้องกันการพิมพ์ต่อรัวๆ
     if(this.score>=this.winScore){
-        this.isPlaying = false;
         setTimeout(()=>this._win(),300);
         return;
     }
     
-    setTimeout(()=>{document.getElementById('izone').classList.remove('ok');this._nextQ();document.getElementById('ans-inp').focus();},320);
+    setTimeout(()=>{
+        if(!this.gameEnded){
+            document.getElementById('izone').classList.remove('ok');this._nextQ();document.getElementById('ans-inp').focus();
+        }
+    },320);
   },
 
   _onWrong(){
@@ -677,15 +690,13 @@ const G={
     document.getElementById('izone').classList.add('wrong'); document.getElementById('ans-inp').value=''; this._updateHUD();
     setTimeout(()=>document.getElementById('izone').classList.remove('wrong'),400);
     
-    // FIX: ป้องกันการส่งคำตอบซ้ำหลังจากเลือดเหลือ 0
     if(this.hp<=0) {
-        this.isPlaying = false;
         setTimeout(()=>this._lose(),300);
     }
   },
 
   useItem(item){
-    if(!this.isPlaying)return; SFX.init();SFX.item();
+    if(!this.isPlaying || this.gameEnded)return; SFX.init();SFX.item();
     if(item==='hint'&&this.hints>0){
       this.hints--;this.score=Math.max(0,this.score-50);this._updateHUD();
       const h=this.currentQ.ans.substring(0,Math.max(1,Math.ceil(this.currentQ.ans.length*.4)));
@@ -699,26 +710,30 @@ const G={
     }
   },
 
+  // FIX: ปรับ Logic การจบเกมให้ทำงานแค่ครั้งเดียว 100%
   _win(){
-    if(!this.isPlaying && this.hp > 0) { // Safety guard
-        clearInterval(this.timerInterval); if(this.typingTimer) clearTimeout(this.typingTimer);
-        SFX.win(); flash('#ffd700');
-        this.saveLB({name:this.playerName,score:this.score,mode:this.lastMode});
-        updateChampion(); this._showEnd(true);
-    }
+    if(this.gameEnded) return; 
+    this.gameEnded = true;
+    this.isPlaying = false; 
+    clearInterval(this.timerInterval); if(this.typingTimer) clearTimeout(this.typingTimer);
+    SFX.win(); flash('#ffd700');
+    this.saveLB({name:this.playerName,score:this.score,mode:this.lastMode});
+    updateChampion(); this._showEnd(true);
   },
   _lose(){
-    if(!this.isPlaying && this.hp <= 0 || this.timer <= 0) { // Safety guard
-        clearInterval(this.timerInterval); if(this.typingTimer) clearTimeout(this.typingTimer);
-        SFX.lose(); flash('#ff2d5b');
-        this.saveLB({name:this.playerName,score:this.score,mode:this.lastMode});
-        updateChampion(); this._showEnd(false);
-    }
+    if(this.gameEnded) return; 
+    this.gameEnded = true;
+    this.isPlaying = false; 
+    clearInterval(this.timerInterval); if(this.typingTimer) clearTimeout(this.typingTimer);
+    SFX.lose(); flash('#ff2d5b');
+    this.saveLB({name:this.playerName,score:this.score,mode:this.lastMode});
+    updateChampion(); this._showEnd(false);
   },
 
   playAgain(){
     SFX.nav(); 
     this.isPlaying = false;
+    this.gameEnded = false;
     clearInterval(this.timerInterval);
     if(this.typingTimer) clearTimeout(this.typingTimer);
     
@@ -733,6 +748,7 @@ const G={
   },
 
   _showEnd(won){
+    // FIX: ข้อความจบเกมสำหรับ Solo ให้เงากับตัวหนังสือตรงกันเป๊ะ
     const txt = won ? 'MISSION COMPLETE' : 'MISSION FAILED';
     document.getElementById('end-title').textContent = txt;
     document.getElementById('end-title').className = won ? 'title win-text' : 'title danger-text';
@@ -756,12 +772,12 @@ const G={
   _startTimer(){
     clearInterval(this.timerInterval);
     this.timerInterval=setInterval(()=>{
-      if(!this.isPlaying)return; this.timer--;
+      if(!this.isPlaying || this.gameEnded)return; // ตัดการทำงานถ้าเกมจบแล้ว
+      this.timer--;
       const tbox=document.getElementById('hud-timer').closest('.hbox-b');
       if(this.timer<=10){ tbox.classList.add('danger'); if(!this.lowTimePlayed||this.timer%2===0){SFX.lowtime();this.lowTimePlayed=true;} }else tbox.classList.remove('danger');
       document.getElementById('hud-timer').textContent=this.timer;
       if(this.timer<=0) {
-          this.isPlaying = false; // Prevent submit
           this._lose();
       }
     },1000);
@@ -818,7 +834,7 @@ const MP={
     s.on('chat_msg',data=>{ addChat(document.getElementById('lobby-chat'),data); });
     s.on('game_started',data=>{
       SFX.nav(); G.playerName=this.myName; G.lastMode=data.mode;
-      G.score=0;G.hp=100;G.combo=0;G.timer=data.timeLimit;G.isPlaying=true;
+      G.score=0;G.hp=100;G.combo=0;G.timer=data.timeLimit;G.isPlaying=true; G.gameEnded = false;
       G.hints=data.defaultItems;G.potions=data.defaultItems;G.skips=data.defaultItems; G.lowTimePlayed=false;
       const mon=document.getElementById('monster'); mon.classList.toggle('boss',data.mode==='SURVIVAL');
       G._clearBossRings(); if(data.mode==='SURVIVAL')G._addBossRings();
@@ -855,7 +871,7 @@ const MP={
     s.on('player_won',data=>{ G.isPlaying=false;SFX.win();flash('#ffd700'); toast(`🏆 YOU WIN! Score: ${data.score.toLocaleString()}`,'y'); });
     s.on('player_eliminated',data=>{ G.isPlaying=false;SFX.lose();flash('#ff2d5b'); toast('💀 ELIMINATED!','r'); });
     s.on('score_update',sb=>this._renderLiveSB(sb));
-    s.on('game_ended',data=>{ G.isPlaying=false;clearInterval(G.timerInterval); if(G.typingTimer) clearTimeout(G.typingTimer); this._showMultiEnd(data.scoreboard); });
+    s.on('game_ended',data=>{ G.isPlaying=false; G.gameEnded=true; clearInterval(G.timerInterval); if(G.typingTimer) clearTimeout(G.typingTimer); this._showMultiEnd(data.scoreboard); });
   },
 
   _setQuestion(q){
@@ -869,7 +885,6 @@ const MP={
     const cnt=document.getElementById('lobby-count'); const pl=document.getElementById('lobby-players');
     cnt.textContent=`${data.players.length}/8 players`; pl.innerHTML='';
     
-    // Check if everyone except host is ready
     let allGuestsReady = true;
     let guestCount = 0;
 
@@ -886,7 +901,6 @@ const MP={
       pl.appendChild(d);
     });
 
-    // Toggle start button state for host based on readiness
     if (this.isHost) {
         const startBtn = document.getElementById('start-btn');
         if ((guestCount > 0 && allGuestsReady) || guestCount === 0) {
@@ -896,7 +910,7 @@ const MP={
         } else {
             startBtn.style.opacity = '0.4';
             startBtn.style.pointerEvents = 'none';
-            startBtn.innerText = 'WAITING FOR PLAYERS TO READY...';
+            startBtn.innerText = 'WAITING FOR PLAYERS...';
         }
     }
   },
@@ -930,13 +944,12 @@ const MP={
   },
 
   submit(){
-    // FIX: Using G.isPlaying and G.currentQ instead of this 
-    if(!G.isPlaying||!G.currentQ)return; const ans=document.getElementById('ans-inp').value.trim(); if(!ans)return;
+    if(!G.isPlaying||!G.currentQ || G.gameEnded)return; const ans=document.getElementById('ans-inp').value.trim(); if(!ans)return;
     SFX.init(); this.socket.emit('submit_answer',{answer:ans});
   },
 
   useItem(item){
-    if(!this.socket)return; SFX.init();SFX.item(); this.socket.emit('use_item',{item});
+    if(!this.socket || !G.isPlaying || G.gameEnded)return; SFX.init();SFX.item(); this.socket.emit('use_item',{item});
   },
 
   _cleanup(){ this.active=false;this.roomCode=null;this.isHost=false;this.isReady=false; },
