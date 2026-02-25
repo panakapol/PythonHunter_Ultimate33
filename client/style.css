@@ -413,14 +413,14 @@ input{-webkit-tap-highlight-color:transparent;}
 }
 
 /* ========================================
-   CODE AREA
+   CODE AREA (แก้ไขให้รองรับขึ้นบรรทัดใหม่)
 ======================================== */
 .code-box{
   width:100%;background:rgba(0,255,65,.025);
   border:1px solid var(--border);
   border-left:3px solid var(--g);
   padding:12px 14px;margin-bottom:8px;
-  position:relative;min-height:96px;
+  position:relative;min-height:110px;
   flex-shrink:0;
 }
 .code-box::before{
@@ -442,12 +442,15 @@ input{-webkit-tap-highlight-color:transparent;}
 .q-txt{
   font-family:var(--font3);color:rgba(255,255,255,.65);
   font-size:clamp(.78rem,2vw,.9rem);
-  font-style:italic;margin-bottom:8px;line-height:1.4;
+  font-style:italic;margin-bottom:8px;
+  white-space: pre-wrap; /* สำคัญ: ทำให้ขึ้นบรรทัดใหม่ได้ตามโจทย์ยาวๆ */
+  line-height:1.6;
 }
 .code-line{
   font-family:var(--font2);
   font-size:clamp(1rem,3.5vw,1.5rem);
   color:#e8ffe8;line-height:1.7;word-break:break-all;
+  white-space: pre-wrap; /* สำหรับโค้ดที่ยาวหลายบรรทัด */
 }
 .typing::after{
   content:'▌';animation:blink .8s step-end infinite;color:var(--g);
@@ -501,13 +504,13 @@ input{-webkit-tap-highlight-color:transparent;}
   display:flex;gap:5px;width:100%;
   flex-shrink:0;
   position:relative;
-  z-index:999; /* แก้บัคโดนเลเยอร์บัง ทำให้คลิกไม่ได้ */
+  z-index:999;
   padding-bottom: max(10px, env(safe-area-inset-bottom));
 }
 .pup{
   flex:1;background:rgba(0,255,65,.025);
   border:1px solid rgba(0,255,65,.18);
-  color:var(--g);padding:12px 4px; /* ขยายปุ่มให้ใหญ่ขึ้น สัมผัสง่าย */
+  color:var(--g);padding:12px 4px;
   font-family:var(--font2);font-size:clamp(.65rem,2vw,.75rem);
   letter-spacing:1px;text-transform:uppercase;
   font-weight:bold;text-align:center;transition:.2s;

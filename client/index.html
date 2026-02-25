@@ -8,6 +8,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css"> 
+<style>
+  /* เพิ่มเติม: ทำให้คำถามยาวๆ ที่มี \n ขึ้นบรรทัดใหม่ได้อย่างสวยงาม */
+  .q-txt { white-space: pre-wrap; line-height: 1.6; padding-bottom: 5px; }
+  .code-line { white-space: pre-wrap; }
+</style>
 </head>
 <body>
 
@@ -89,8 +94,6 @@
     <button class="mbtn" data-mode="DATA"><span class="mico">04</span><div class="minfo"><h3>DATA</h3><small>List · Dict · Set</small></div></button>
     <button class="mbtn" data-mode="FUNC"><span class="mico">05</span><div class="minfo"><h3>FUNC</h3><small>Def · Return · Lambda</small></div></button>
     <button class="mbtn" data-mode="OOP"><span class="mico">06</span><div class="minfo"><h3>OOP</h3><small>Class · Init · Self</small></div></button>
-    <button class="mbtn" data-mode="DATABASE"><span class="mico">07</span><div class="minfo"><h3>DATABASE</h3><small>Connect · Cursor · SQL</small></div></button>
-    <button class="mbtn" data-mode="FILE"><span class="mico">08</span><div class="minfo"><h3>FILE I/O</h3><small>Open · Read · Write</small></div></button>
   </div>
 
   <button class="btn btn-lg btn-red" data-mode="SURVIVAL" style="margin-top:4px;width:100%;">☠ SURVIVAL MODE — HARDCORE ONLY</button>
@@ -252,8 +255,8 @@
         <li>▸ <strong>เป้าหมาย:</strong> พิมพ์เติมโค้ด Python ให้ถูกต้องเพื่อโจมตี Bug Monster</li>
         <li>▸ <strong>คะแนน:</strong> ตอบถูกรับ <span style="color:var(--g);">+150 คะแนน</span>/ข้อ</li>
         <li>▸ <strong>TIME BONUS:</strong> ตอบถูกต่อเนื่อง 3 ข้อ → <span style="color:var(--y);">+10 วินาที</span></li>
-        <li>▸ <strong>เงื่อนไขการชนะ (WIN):</strong> 60s = 800 | 120s = 1,500 | 180s = 2,000 คะแนน</li>
         <li>▸ <strong>ไอเทมตัวช่วย:</strong> 💊 HP+30% | 💡 HINT ใบ้ตัวแรก -50pts | ⏩ SKIP ข้ามข้อ -100pts</li>
+        <li>▸ <strong>โหมดออนไลน์:</strong> เกมจะสิ้นสุดลงก็ต่อเมื่อ "เวลาหมด" เท่านั้น (เล่นกันให้ทะลุลิมิต!)</li>
         <li>▸ <strong>Survival Mode:</strong> โหมดโหดหิน สุ่มเฉพาะโจทย์ระดับ <span style="color:var(--r);">ข้อยากพิเศษ</span> (Level 6-7) เท่านั้น</li>
       </ul>
     </div>
@@ -334,17 +337,8 @@
       </ul>
     </div>
 
-    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
-      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">7. DATABASE & FILE I/O</h3>
-      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
-        <li><span style="color:var(--b);">sqlite3.connect()</span> : เชื่อมต่อ Database และ <span style="color:var(--b);">.execute()</span> สั่งรัน SQL</li>
-        <li><span style="color:var(--b);">.commit() / .close()</span> : บันทึกการเปลี่ยนแปลง / ปิดการเชื่อมต่อ Database</li>
-        <li><span style="color:var(--b);">open('f.txt', 'r')</span> : เปิดอ่านไฟล์ <span style="color:var(--b);">.read()</span> อ่านทั้งหมด <span style="color:var(--b);">.write()</span> เขียนข้อมูล</li>
-      </ul>
-    </div>
-
     <div>
-      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--r);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--r);">9. SURVIVAL (Advanced - โหดพิเศษ)</h3>
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--r);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--r);">7. SURVIVAL (Advanced - โหดพิเศษ)</h3>
       <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
         <li><span style="color:var(--b);">Comprehension</span> : การสร้าง List ในบรรทัดเดียว [x for x in r]</li>
         <li><span style="color:var(--b);">lambda</span> : ฟังก์ชันขนาดสั้นแบบไม่มีชื่อ</li>
@@ -365,7 +359,6 @@
 <script>
 /* ============================================================
    PYTHON HUNTER v4 — CLIENT JS
-   Full rewrite: Solo + Multiplayer (Socket.IO)
    ============================================================ */
 
 (function(){
@@ -505,14 +498,9 @@ document.querySelector('.btn-red[data-mode="SURVIVAL"]').addEventListener('click
   SFX.nav();G.startSolo('SURVIVAL');
 });
 
-// =====================================
-// LOCAL LEADERBOARD
-// =====================================
 function showLeaderboard(){
   SFX.nav();
   let lb=G.loadLB();
-  
-  // แก้บั๊กที่ 2: เรียงข้อมูลใหม่ให้ชัวร์ก่อนแสดงผล เผื่อโหลดมาไม่เรียง
   lb.sort((a,b)=>b.score-a.score); 
 
   const body=document.getElementById('lb-body');
@@ -545,6 +533,25 @@ function updateChampion(){
   }
 }
 
+// อัลกอริทึมจัดเรียงคำถาม (ง่ายไปยาก) แบบเดียวกันกับ Server
+function sortAndShuffleByLevel(pool) {
+  const grouped = {};
+  pool.forEach(q => {
+    if(!grouped[q.level]) grouped[q.level] = [];
+    grouped[q.level].push(q);
+  });
+  let finalPool = [];
+  Object.keys(grouped).sort((a,b) => a - b).forEach(lvl => {
+    let arr = grouped[lvl];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    finalPool = finalPool.concat(arr);
+  });
+  return finalPool;
+}
+
 const G={
   playerName:'PLAYER', selectedTime:60, mode:'solo',
   score:0,hp:100,timer:60,combo:0,
@@ -561,10 +568,6 @@ const G={
     try{localStorage.setItem('ph_lb_v4',JSON.stringify(lb.slice(0,15)));}catch(e){}
   },
 
-  shuffle(a){
-    const r=[...a]; for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];} return r;
-  },
-
   startSolo(modeKey){
     this.lastMode=modeKey; SFX.init();
     const timeMap={60:{win:800,items:1},120:{win:1500,items:2},180:{win:2000,items:3}};
@@ -576,7 +579,7 @@ const G={
 
     let pool=modeKey==='SURVIVAL' ? SOLO_QUESTIONS.filter(q=>q.level>=6) : SOLO_QUESTIONS.filter(q=>q.mode===modeKey);
     if(!pool.length)pool=SOLO_QUESTIONS;
-    this.questions=this.shuffle(pool); this.qIdx=0;
+    this.questions=sortAndShuffleByLevel(pool); this.qIdx=0;
 
     const mon=document.getElementById('monster'); mon.classList.toggle('boss',modeKey==='SURVIVAL');
     this._clearBossRings(); if(modeKey==='SURVIVAL')this._addBossRings();
@@ -606,7 +609,7 @@ const G={
     if(this.questions.length===0){
       let pool=this.lastMode==='SURVIVAL' ? SOLO_QUESTIONS.filter(q=>q.level>=6) : SOLO_QUESTIONS.filter(q=>q.mode===this.lastMode);
       if(!pool.length)pool=SOLO_QUESTIONS;
-      this.questions=this.shuffle(pool);this.qIdx=0;
+      this.questions=sortAndShuffleByLevel(pool); this.qIdx=0;
     }
     this.currentQ=this.questions[this.qIdx%this.questions.length]; this.qIdx++;
     if(!this.currentQ.inHistory)this.sessionHistory.push(this.currentQ); this.currentQ.inHistory=true;
@@ -621,13 +624,17 @@ const G={
   },
 
   _typeCode(txt){
-    if(this.typingTimer)clearTimeout(this.typingTimer);
-    const el=document.getElementById('q-code'); el.textContent='';el.classList.add('typing');
-    let i=0;const spd=txt.length>28?7:13;
+    if(this.typingTimer) { clearTimeout(this.typingTimer); this.typingTimer = null; }
+    const el=document.getElementById('q-code'); el.textContent=''; el.classList.add('typing');
+    let i=0; const strTxt = String(txt); const spd=strTxt.length>30?5:15;
+    
     const type=()=>{
-      if(i<=txt.length){el.textContent=txt.substring(0,i);i++;this.typingTimer=setTimeout(type,spd);}
-      else el.classList.remove('typing');
-    };type();
+      if(!this.isPlaying) { el.classList.remove('typing'); return; }
+      if(i<=strTxt.length){
+        el.textContent=strTxt.substring(0,i); i++; this.typingTimer=setTimeout(type,spd);
+      } else { el.classList.remove('typing'); }
+    };
+    type();
   },
 
   submit(){
@@ -646,7 +653,8 @@ const G={
     burstEl(document.getElementById('monster'),this.lastMode==='SURVIVAL'?'#ff2d5b':'#00ff41',14);
     const mon=document.getElementById('monster'); mon.classList.add('hit');setTimeout(()=>mon.classList.remove('hit'),180);
     document.getElementById('izone').classList.add('ok'); this._updateHUD();
-    if(this.score>=this.winScore){setTimeout(()=>this._win(),300);return;}
+    
+    // เอาเงื่อนไข winScore ออก เกมเล่นคนเดียวจะจบเมื่อเวลาหมด หรือเลือดหมด เท่านั้น
     setTimeout(()=>{document.getElementById('izone').classList.remove('ok');this._nextQ();document.getElementById('ans-inp').focus();},320);
   },
 
@@ -673,18 +681,25 @@ const G={
   },
 
   _win(){
-    this.isPlaying=false;clearInterval(this.timerInterval);SFX.win(); flash('#ffd700');
+    this.isPlaying=false; clearInterval(this.timerInterval); if(this.typingTimer) clearTimeout(this.typingTimer);
+    SFX.win(); flash('#ffd700');
     this.saveLB({name:this.playerName,score:this.score,mode:this.lastMode});
     updateChampion(); this._showEnd(true);
   },
   _lose(){
-    this.isPlaying=false;clearInterval(this.timerInterval);SFX.lose(); flash('#ff2d5b');
+    this.isPlaying=false; clearInterval(this.timerInterval); if(this.typingTimer) clearTimeout(this.typingTimer);
+    SFX.lose(); flash('#ff2d5b');
     this.saveLB({name:this.playerName,score:this.score,mode:this.lastMode});
     updateChampion(); this._showEnd(false);
   },
 
   playAgain(){
-    SFX.nav(); if(MP.active){showScene('s-lobby');}else{G.startSolo(G.lastMode);}
+    SFX.nav(); 
+    this.isPlaying = false;
+    clearInterval(this.timerInterval);
+    if(this.typingTimer) clearTimeout(this.typingTimer);
+    
+    if(MP.active){showScene('s-lobby');}else{G.startSolo(G.lastMode);}
   },
 
   _showEnd(won){
@@ -813,7 +828,7 @@ const MP={
     s.on('player_won',data=>{ G.isPlaying=false;SFX.win();flash('#ffd700'); toast(`🏆 YOU WIN! Score: ${data.score.toLocaleString()}`,'y'); });
     s.on('player_eliminated',data=>{ G.isPlaying=false;SFX.lose();flash('#ff2d5b'); toast('💀 ELIMINATED!','r'); });
     s.on('score_update',sb=>this._renderLiveSB(sb));
-    s.on('game_ended',data=>{ G.isPlaying=false;clearInterval(G.timerInterval); this._showMultiEnd(data.scoreboard); });
+    s.on('game_ended',data=>{ G.isPlaying=false;clearInterval(G.timerInterval); if(G.typingTimer) clearTimeout(G.typingTimer); this._showMultiEnd(data.scoreboard); });
   },
 
   _setQuestion(q){
@@ -881,8 +896,8 @@ function showJoinPanel(){
 function createRoom(){
   SFX.nav(); const n=document.getElementById('name-multi').value.trim();
   if(!n){toast('ใส่ชื่อก่อน!','r');document.getElementById('name-multi').focus();return;}
-  MP.myName=n.toUpperCase().slice(0,12); MP.connect(); const t=getSelectedTime();
-  _showModePickerForMP((mode)=>{ MP.socket.emit('create_room',{playerName:MP.myName,mode,timeLimit:t}); });
+  MP.myName=n.toUpperCase().slice(0,12); MP.connect();
+  _showModePickerForMP((mode, timeLimit)=>{ MP.socket.emit('create_room',{playerName:MP.myName,mode,timeLimit}); });
 }
 
 function joinRoom(){
@@ -891,26 +906,43 @@ function joinRoom(){
   MP.myName=n.toUpperCase().slice(0,12); MP.connect(); setTimeout(()=>{ MP.socket.emit('join_room',{playerName:MP.myName,roomCode:code}); },300);
 }
 
+// ย้ายปุ่มเลือกเวลามาไว้ในหน้าต่างสร้างห้อง
 function _showModePickerForMP(cb){
   const ol=document.createElement('div'); ol.style.cssText=`position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.85);display:flex;justify-content:center;align-items:center;padding:20px;`;
   const box=document.createElement('div'); box.style.cssText=`background:var(--glass);border:1px solid var(--g);padding:20px;max-width:460px;width:100%;`;
   box.innerHTML=`
-    <div style="font-family:var(--font1);font-size:.85rem;color:var(--g);letter-spacing:3px;margin-bottom:14px;text-align:center;">SELECT MODE FOR ROOM</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+    <div style="font-family:var(--font1);font-size:.85rem;color:var(--g);letter-spacing:3px;margin-bottom:14px;text-align:center;">ROOM SETTINGS</div>
+    
+    <div style="font-family:var(--font3);font-size:.75rem;color:var(--b);letter-spacing:2px;margin-bottom:6px;">▸ SELECT MODULE</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
       ${['BASICS','LOGIC','LOOPS','DATA','FUNC','OOP','DATABASE','FILE','SURVIVAL'].map(m=>`
         <button onclick="this.closest('.mpp').dataset.mode='${m}';document.querySelectorAll('.mpp-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on');" 
           style="background:rgba(0,255,65,.04);border:1px solid rgba(0,255,65,.2);color:#fff;padding:10px;font-family:var(--font2);font-size:.75rem;letter-spacing:2px;cursor:pointer;transition:.2s;"
           class="mpp-btn${m==='SURVIVAL'?' btn-red':''}">${m}</button>
       `).join('')}
     </div>
+
+    <div style="font-family:var(--font3);font-size:.75rem;color:var(--b);letter-spacing:2px;margin-bottom:6px;">▸ TIME LIMIT</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button class="t-btn-mp on" onclick="this.closest('.mpp').dataset.time=60;document.querySelectorAll('.t-btn-mp').forEach(b=>b.classList.remove('on'));this.classList.add('on');" style="flex:1;background:rgba(0,255,65,.03);border:1px solid rgba(0,255,65,.15);color:var(--dim);padding:10px;font-family:var(--font1);font-size:.8rem;cursor:pointer;">60s</button>
+      <button class="t-btn-mp" onclick="this.closest('.mpp').dataset.time=120;document.querySelectorAll('.t-btn-mp').forEach(b=>b.classList.remove('on'));this.classList.add('on');" style="flex:1;background:rgba(0,255,65,.03);border:1px solid rgba(0,255,65,.15);color:var(--dim);padding:10px;font-family:var(--font1);font-size:.8rem;cursor:pointer;">120s</button>
+      <button class="t-btn-mp" onclick="this.closest('.mpp').dataset.time=180;document.querySelectorAll('.t-btn-mp').forEach(b=>b.classList.remove('on'));this.classList.add('on');" style="flex:1;background:rgba(0,255,65,.03);border:1px solid rgba(0,255,65,.15);color:var(--dim);padding:10px;font-family:var(--font1);font-size:.8rem;cursor:pointer;">180s</button>
+    </div>
+
     <div style="display:flex;gap:8px;">
-      <button onclick="const m=this.closest('.mpp').dataset.mode||'BASICS';document.body.removeChild(this.closest('.mpp-ov'));cb(m);" style="flex:1;background:rgba(0,255,65,.1);border:1px solid var(--g);color:var(--g);padding:11px;font-family:var(--font1);font-size:.78rem;letter-spacing:2px;cursor:pointer;">✓ CREATE ROOM</button>
+      <button onclick="const m=this.closest('.mpp').dataset.mode||'BASICS';const t=parseInt(this.closest('.mpp').dataset.time)||60;document.body.removeChild(this.closest('.mpp-ov'));cb(m, t);" style="flex:1;background:rgba(0,255,65,.1);border:1px solid var(--g);color:var(--g);padding:11px;font-family:var(--font1);font-size:.78rem;letter-spacing:2px;cursor:pointer;">✓ CREATE ROOM</button>
       <button onclick="document.body.removeChild(this.closest('.mpp-ov'));" style="background:transparent;border:1px solid var(--border);color:var(--dim);padding:11px 16px;font-family:var(--font2);font-size:.75rem;cursor:pointer;">✕</button>
     </div>
   `;
-  box.className='mpp';box.dataset.mode='BASICS'; ol.className='mpp-ov';ol.appendChild(box); document.body.appendChild(ol);
+  // Add CSS for active button state inside modal
+  const style = document.createElement('style');
+  style.innerHTML = `.mpp-btn.on, .t-btn-mp.on { border-color:var(--g) !important; color:var(--g) !important; background:rgba(0,255,65,.1) !important; box-shadow:var(--sg); }`;
+  box.appendChild(style);
+
+  box.className='mpp';box.dataset.mode='BASICS'; box.dataset.time='60';
+  ol.className='mpp-ov';ol.appendChild(box); document.body.appendChild(ol);
   ol.addEventListener('click',e=>{if(e.target===ol)document.body.removeChild(ol);}); window.__mpCb=cb;
-  box.querySelectorAll('button').forEach(btn=>{ const orig=btn.getAttribute('onclick'); if(orig&&orig.includes('cb(m)'))btn.setAttribute('onclick',orig.replace('cb(m)','window.__mpCb(m)')); });
+  box.querySelectorAll('button').forEach(btn=>{ const orig=btn.getAttribute('onclick'); if(orig&&orig.includes('cb(m, t)'))btn.setAttribute('onclick',orig.replace('cb(m, t)','window.__mpCb(m, t)')); });
 }
 
 function toggleReady(){
@@ -923,151 +955,151 @@ function startGame(){ SFX.nav(); if(!MP.socket||!MP.isHost)return; MP.socket.emi
 function leaveRoom(){ SFX.click(); if(MP.socket)MP.socket.disconnect(); MP._cleanup(); showScene('s-menu'); }
 function copyCode(){ const code=document.getElementById('lobby-code').textContent; navigator.clipboard?.writeText(code).then(()=>toast('คัดลอกรหัสแล้ว! '+code,'g')).catch(()=>toast(code,'b')); }
 
-// แก้บั๊กที่ 1: กดแชทแล้วไม่ให้กระทบโหมดเกม
 document.getElementById('chat-inp-lobby').addEventListener('keydown',e=>{
-  if(e.key==='Enter') {
-    sendChat('lobby');
-    e.stopPropagation(); 
-  }
+  if(e.key==='Enter') { sendChat('lobby'); e.stopPropagation(); }
 });
 function sendChat(ctx){ SFX.click(); const inp=document.getElementById(`chat-inp-${ctx}`); const msg=inp.value.trim(); if(!msg||!MP.socket)return; MP.socket.emit('send_chat',{text:msg}); inp.value=''; }
 
 function handleFire() {
-  if (typeof MP !== 'undefined' && MP.active && G.isPlaying) {
-    MP.submit();
-  } else {
-    G.submit();
-  }
+  if (typeof MP !== 'undefined' && MP.active && G.isPlaying) { MP.submit(); } else { G.submit(); }
 }
 
 function handleItem(item) {
-  if (typeof MP !== 'undefined' && MP.active && G.isPlaying) {
-    MP.useItem(item);
-  } else {
-    G.useItem(item);
-  }
+  if (typeof MP !== 'undefined' && MP.active && G.isPlaying) { MP.useItem(item); } else { G.useItem(item); }
 }
 
 updateChampion();
 
-const SOLO_QUESTIONS=[
-  {id:101,mode:'BASICS',level:1,text:"คำสั่งแสดงผลออกหน้าจอ",code:"____('Hello World')",ans:"print",explanation:"print() ใช้แสดงผล"},
-  {id:102,mode:'BASICS',level:1,text:"รับค่าจากผู้ใช้",code:"name = ____('Enter: ')",ans:"input",explanation:"input() รับค่าจากผู้ใช้"},
-  {id:103,mode:'BASICS',level:1,text:"แปลงข้อความเป็นจำนวนเต็ม",code:"score = ____('50')",ans:"int",explanation:"int() แปลงเป็น integer"},
-  {id:104,mode:'BASICS',level:1,text:"แปลงตัวเลขเป็นข้อความ",code:"msg = 'Age: ' + ____(20)",ans:"str",explanation:"str() แปลงเป็น string"},
-  {id:105,mode:'BASICS',level:1,text:"ตรวจสอบชนิดตัวแปร",code:"____(3.14)",ans:"type",explanation:"type() ดูชนิดข้อมูล"},
-  {id:106,mode:'BASICS',level:1,text:"ตัวเลขทศนิยม",code:"price = 99.5  # ชนิด ____",ans:"float",explanation:"float = เลขทศนิยม"},
-  {id:107,mode:'BASICS',level:1,text:"ค่าความจริง 'เท็จ'",code:"flag = ____",ans:"False",explanation:"Boolean ต้องตัวใหญ่"},
-  {id:108,mode:'BASICS',level:1,text:"ค่าความจริง 'จริง'",code:"flag = ____",ans:"True",explanation:"Boolean ต้องตัวใหญ่"},
-  {id:109,mode:'BASICS',level:1,text:"สัญลักษณ์ Comment",code:"____ This is comment",ans:"#",explanation:"# ใช้เขียน comment"},
-  {id:110,mode:'BASICS',level:1,text:"ลบตัวแปร",code:"____ my_var",ans:"del",explanation:"del ลบตัวแปร"},
-  {id:111,mode:'BASICS',level:1,text:"กำหนดค่าตัวแปร",code:"x ____ 10",ans:"=",explanation:"= กำหนดค่า"},
-  {id:112,mode:'BASICS',level:1,text:"บวกเลข",code:"5 ____ 3",ans:"+",explanation:"+ บวก"},
-  {id:113,mode:'BASICS',level:1,text:"ลบเลข",code:"10 ____ 4",ans:"-",explanation:"- ลบ"},
-  {id:114,mode:'BASICS',level:1,text:"คูณเลข",code:"6 ____ 2",ans:"*",explanation:"* คูณ"},
-  {id:115,mode:'BASICS',level:1,text:"หารเลข",code:"8 ____ 2",ans:"/",explanation:"/ หาร"},
-  {id:116,mode:'BASICS',level:1,text:"หารปัดเศษทิ้ง",code:"9 ____ 2",ans:"//",explanation:"// floor division"},
-  {id:117,mode:'BASICS',level:1,text:"หาเศษจากการหาร",code:"10 ____ 3",ans:"%",explanation:"% modulo"},
-  {id:118,mode:'BASICS',level:1,text:"ยกกำลัง",code:"2 ____ 3",ans:"**",explanation:"** ยกกำลัง"},
-  {id:119,mode:'BASICS',level:1,text:"แปลงเป็นทศนิยม",code:"price = ____(10)",ans:"float",explanation:"float() แปลงเป็น float"},
-  {id:120,mode:'BASICS',level:1,text:"รับตัวเลขจากผู้ใช้",code:"age = ____(input())",ans:"int",explanation:"ต้อง wrap ด้วย int()"},
-  {id:221,mode:'LOGIC',level:2,text:"คำสั่งตรวจสอบเงื่อนไข",code:"____ x > 10:",ans:"if",explanation:"if ตรวจสอบเงื่อนไข"},
-  {id:222,mode:'LOGIC',level:2,text:"เงื่อนไขเพิ่มเติม",code:"____ x > 5:",ans:"elif",explanation:"elif ตรวจเมื่อ if เป็น False"},
-  {id:223,mode:'LOGIC',level:2,text:"กรณีสุดท้าย",code:"____:",ans:"else",explanation:"else ทำเมื่อทุกเงื่อนไขเป็น False"},
-  {id:224,mode:'LOGIC',level:2,text:"เปรียบเทียบ 'เท่ากับ'",code:"if x ____ 10:",ans:"==",explanation:"== เปรียบเทียบค่า"},
-  {id:225,mode:'LOGIC',level:2,text:"เปรียบเทียบ 'ไม่เท่า'",code:"if x ____ 0:",ans:"!=",explanation:"!= ไม่เท่ากับ"},
-  {id:226,mode:'LOGIC',level:2,text:"มากกว่า",code:"if score ____ 80:",ans:">",explanation:"> มากกว่า"},
-  {id:227,mode:'LOGIC',level:2,text:"น้อยกว่า",code:"if score ____ 50:",ans:"<",explanation:"< น้อยกว่า"},
-  {id:228,mode:'LOGIC',level:2,text:"มากกว่าหรือเท่ากับ",code:"if age ____ 18:",ans:">=",explanation:">= มากกว่าหรือเท่ากับ"},
-  {id:229,mode:'LOGIC',level:2,text:"น้อยกว่าหรือเท่ากับ",code:"if score ____ 60:",ans:"<=",explanation:"<= น้อยกว่าหรือเท่ากับ"},
-  {id:230,mode:'LOGIC',level:2,text:"ตรรกะ 'และ'",code:"if a > 0 ____ b > 0:",ans:"and",explanation:"and ทั้งสองต้องจริง"},
-  {id:231,mode:'LOGIC',level:2,text:"ตรรกะ 'หรือ'",code:"if a > 0 ____ b > 0:",ans:"or",explanation:"or หนึ่งในนั้นจริง"},
-  {id:232,mode:'LOGIC',level:2,text:"กลับค่าความจริง",code:"if ____ done:",ans:"not",explanation:"not กลับค่า bool"},
-  {id:233,mode:'LOGIC',level:2,text:"ตรวจสอบสมาชิก",code:"if 'a' ____ ['a','b']:",ans:"in",explanation:"in ตรวจสอบสมาชิก"},
-  {id:234,mode:'LOGIC',level:2,text:"ตรวจสอบว่าไม่อยู่ในกลุ่ม",code:"if 'x' ____ lst:",ans:"not in",explanation:"not in ตรวจสอบว่าไม่มี"},
-  {id:235,mode:'LOGIC',level:2,text:"ตรวจสอบชนิดข้อมูล",code:"____(x, int)",ans:"isinstance",explanation:"isinstance ตรวจชนิด"},
-  {id:236,mode:'LOGIC',level:2,text:"ตรวจสอบ None",code:"if x ____ None:",ans:"is",explanation:"is ใช้กับ None"},
-  {id:237,mode:'LOGIC',level:2,text:"ตรวจสอบว่าไม่ใช่ None",code:"if x ____ None:",ans:"is not",explanation:"is not ไม่ใช่ None"},
-  {id:341,mode:'LOOPS',level:3,text:"วนซ้ำแบบรู้จำนวนรอบ",code:"____ i in range(10):",ans:"for",explanation:"for วนซ้ำ"},
-  {id:342,mode:'LOOPS',level:3,text:"สร้างชุดตัวเลข 0 ถึง 4",code:"for i in ____(5):",ans:"range",explanation:"range สร้างลำดับตัวเลข"},
-  {id:343,mode:'LOOPS',level:3,text:"วนซ้ำตามเงื่อนไข",code:"____ hp > 0:",ans:"while",explanation:"while วนจนเงื่อนไขเป็น False"},
-  {id:344,mode:'LOOPS',level:3,text:"หยุดลูปทันที",code:"if dead: ____",ans:"break",explanation:"break ออกจากลูป"},
-  {id:345,mode:'LOOPS',level:3,text:"ข้ามรอบปัจจุบัน",code:"if skip: ____",ans:"continue",explanation:"continue ข้ามไปรอบถัดไป"},
-  {id:346,mode:'LOOPS',level:3,text:"วนซ้ำใน string",code:"for char ____ 'Python':",ans:"in",explanation:"in ระบุลำดับ"},
-  {id:347,mode:'LOOPS',level:3,text:"range จาก 1 ถึง 3",code:"range(1, ____)",ans:"4",explanation:"stop ไม่รวม ต้องใส่ 4"},
-  {id:348,mode:'LOOPS',level:3,text:"ลูปไม่สิ้นสุด",code:"while ____:",ans:"True",explanation:"while True = infinite loop"},
-  {id:349,mode:'LOOPS',level:3,text:"วนซ้ำพร้อม index",code:"for i,v in ____(['a','b']):",ans:"enumerate",explanation:"enumerate คืน index+value"},
-  {id:350,mode:'LOOPS',level:3,text:"เพิ่มค่าตัวแปร",code:"count ____ 1",ans:"+=",explanation:"+= เพิ่มค่า"},
-  {id:351,mode:'LOOPS',level:3,text:"ลดค่าตัวแปร",code:"count ____ 1",ans:"-=",explanation:"-= ลดค่า"},
-  {id:352,mode:'LOOPS',level:3,text:"วนย้อนกลับ",code:"range(10,0,____)",ans:"-1",explanation:"step=-1 นับถอยหลัง"},
-  {id:353,mode:'LOOPS',level:3,text:"ตรวจสอบเลขคู่",code:"if i%2 ____ 0:",ans:"==",explanation:"เศษ 0 = เลขคู่"},
-  {id:354,mode:'LOOPS',level:3,text:"list comprehension",code:"[x*x ____ x in range(5)]",ans:"for",explanation:"for ใน comprehension"},
-  {id:461,mode:'DATA',level:4,text:"สร้าง list",code:"nums = ____1, 2, 3____",ans:"[]",explanation:"[] สร้าง list"},
-  {id:462,mode:'DATA',level:4,text:"เข้าถึงตัวแรกของ list",code:"print(nums[____])",ans:"0",explanation:"index เริ่มที่ 0"},
-  {id:463,mode:'DATA',level:4,text:"เพิ่มข้อมูลใน list",code:"nums.____(40)",ans:"append",explanation:"append เพิ่มท้าย"},
-  {id:464,mode:'DATA',level:4,text:"ลบและดึงตัวสุดท้าย",code:"nums.____()",ans:"pop",explanation:"pop ลบตัวสุดท้าย"},
-  {id:465,mode:'DATA',level:4,text:"หาความยาว",code:"____(nums)",ans:"len",explanation:"len หาความยาว"},
-  {id:466,mode:'DATA',level:4,text:"เรียงลำดับ",code:"nums.____()",ans:"sort",explanation:"sort เรียงจากน้อยไปมาก"},
-  {id:467,mode:'DATA',level:4,text:"กลับลำดับ",code:"nums.____()",ans:"reverse",explanation:"reverse กลับลำดับ"},
-  {id:468,mode:'DATA',level:4,text:"ตรวจสอบสมาชิก",code:"if 2 ____ nums:",ans:"in",explanation:"in ตรวจสมาชิก"},
-  {id:469,mode:'DATA',level:4,text:"สร้าง dictionary",code:"d = ____'k':'v'____",ans:"{}",explanation:"{} สร้าง dict"},
-  {id:470,mode:'DATA',level:4,text:"วนลูป key-value",code:"for k,v in d.____():",ans:"items",explanation:"items() คืนคู่ key-value"},
-  {id:471,mode:'DATA',level:4,text:"สร้าง set",code:"s = ____(nums)",ans:"set",explanation:"set ไม่ซ้ำ"},
-  {id:472,mode:'DATA',level:4,text:"เพิ่มใน set",code:"s.____(3)",ans:"add",explanation:"add เพิ่มใน set"},
-  {id:473,mode:'DATA',level:4,text:"หาค่าสูงสุด",code:"m = ____(nums)",ans:"max",explanation:"max ค่าสูงสุด"},
-  {id:474,mode:'DATA',level:4,text:"หาค่าต่ำสุด",code:"m = ____(nums)",ans:"min",explanation:"min ค่าต่ำสุด"},
-  {id:581,mode:'FUNC',level:5,text:"สร้างฟังก์ชัน",code:"____ greet():",ans:"def",explanation:"def สร้างฟังก์ชัน"},
-  {id:582,mode:'FUNC',level:5,text:"ส่งค่ากลับ",code:"____ a + b",ans:"return",explanation:"return ส่งค่ากลับ"},
-  {id:583,mode:'FUNC',level:5,text:"Import โมดูล",code:"____ math",ans:"import",explanation:"import นำเข้าโมดูล"},
-  {id:584,mode:'FUNC',level:5,text:"ตั้งชื่อย่อโมดูล",code:"import math ____ m",ans:"as",explanation:"as ตั้งชื่อเล่น"},
-  {id:585,mode:'FUNC',level:5,text:"ฟังก์ชัน lambda",code:"sq = ____ x: x*x",ans:"lambda",explanation:"lambda ฟังก์ชันสั้น"},
-  {id:586,mode:'FUNC',level:5,text:"ฟังก์ชันไม่มีโค้ด",code:"def test(): ____",ans:"pass",explanation:"pass ไม่ทำอะไร"},
-  {id:587,mode:'FUNC',level:5,text:"*args",code:"def f(____nums):",ans:"*",explanation:"* รับ args เป็น tuple"},
-  {id:588,mode:'FUNC',level:5,text:"**kwargs",code:"def f(____data):",ans:"**",explanation:"** รับ kwargs เป็น dict"},
-  {id:589,mode:'FUNC',level:5,text:"global variable",code:"____ x",ans:"global",explanation:"global แก้ตัวแปร global"},
-  {id:590,mode:'FUNC',level:5,text:"import เฉพาะฟังก์ชัน",code:"from math ____ sqrt",ans:"import",explanation:"from...import"},
-  {id:601,mode:'OOP',level:5,text:"สร้างคลาส",code:"____ Person:",ans:"class",explanation:"class สร้าง blueprint"},
-  {id:602,mode:'OOP',level:5,text:"Constructor",code:"def ____(self):",ans:"__init__",explanation:"__init__ ทำงานเมื่อสร้าง object"},
-  {id:603,mode:'OOP',level:5,text:"พารามิเตอร์ self",code:"def greet(____):",ans:"self",explanation:"self = object ปัจจุบัน"},
-  {id:604,mode:'OOP',level:5,text:"สร้าง object",code:"p = ____()",ans:"Person",explanation:"ใช้ชื่อคลาส()"},
-  {id:605,mode:'OOP',level:5,text:"Inheritance",code:"class Student(____):",ans:"Person",explanation:"สืบทอดจาก Person"},
-  {id:606,mode:'OOP',level:5,text:"เรียก parent constructor",code:"____().__init__(name)",ans:"super",explanation:"super() เรียกคลาสแม่"},
-  {id:607,mode:'OOP',level:5,text:"__str__ method",code:"def ____(self):",ans:"__str__",explanation:"__str__ แสดงข้อความ"},
-  {id:608,mode:'OOP',level:5,text:"property decorator",code:"@____",ans:"property",explanation:"@property เรียกเหมือน attribute"},
-  { id:801, mode:'DATABASE', level:6, text:"เชื่อมต่อฐานข้อมูล SQLite", code:"sqlite3.____('data.db')", ans:"connect", explanation:"connect() ใช้เชื่อมต่อฐานข้อมูล" },
-  { id:802, mode:'DATABASE', level:6, text:"สร้าง Cursor", code:"c = conn.____()", ans:"cursor", explanation:"cursor() เป็นตัวจัดการคำสั่ง SQL" },
-  { id:803, mode:'DATABASE', level:6, text:"รันคำสั่ง SQL", code:"c.____('SELECT * FROM users')", ans:"execute", explanation:"execute() สั่งรัน SQL" },
-  { id:804, mode:'DATABASE', level:6, text:"บันทึกข้อมูล (Commit)", code:"conn.____()", ans:"commit", explanation:"commit() ยืนยันการเปลี่ยนแปลงใน DB" },
-  { id:805, mode:'DATABASE', level:6, text:"ดึงข้อมูลทั้งหมด", code:"rows = c.____()", ans:"fetchall", explanation:"fetchall() ดึงทุกแถวเป็น List" },
-  { id:806, mode:'DATABASE', level:6, text:"ดึงข้อมูล 1 แถว", code:"row = c.____()", ans:"fetchone", explanation:"fetchone() ดึงข้อมูลแค่แถวเดียว" },
-  { id:807, mode:'DATABASE', level:6, text:"ปิดการเชื่อมต่อ", code:"conn.____()", ans:"close", explanation:"close() ปิดฐานข้อมูล" },
-  { id:901, mode:'FILE', level:6, text:"เปิดไฟล์โหมดอ่าน", code:"f = ____('data.txt', 'r')", ans:"open", explanation:"open() ใช้เปิดไฟล์" },
-  { id:902, mode:'FILE', level:6, text:"อ่านไฟล์ทั้งหมด", code:"txt = f.____()", ans:"read", explanation:"read() อ่านเนื้อหาทั้งหมด" },
-  { id:903, mode:'FILE', level:6, text:"อ่านไฟล์ทีละบรรทัด", code:"line = f.____()", ans:"readline", explanation:"readline() อ่าน 1 บรรทัด" },
-  { id:904, mode:'FILE', level:6, text:"เขียนข้อมูลลงไฟล์", code:"f.____('Hello')", ans:"write", explanation:"write() เขียนข้อความลงไฟล์" },
-  { id:905, mode:'FILE', level:6, text:"ปิดไฟล์", code:"f.____()", ans:"close", explanation:"close() คืนหน่วยความจำ" },
-  { id:906, mode:'FILE', level:6, text:"เปิดไฟล์ด้วย Context", code:"____ open('f.txt') as f:", ans:"with", explanation:"with จะจัดการปิดไฟล์ให้อัตโนมัติ" },
-  {id:701,mode:'LOGIC',level:7,text:"AND เงื่อนไขสองข้อ",code:"if x%2==0 ____ x>10:",ans:"and",explanation:"and เชื่อม 2 เงื่อนไข"},
-  {id:702,mode:'LOGIC',level:7,text:"ตรวจสอบว่าไม่ว่างเปล่า",code:"if ____ name:",ans:"not",explanation:"not กลับค่า"},
-  {id:703,mode:'LOOPS',level:7,text:"ลูปถอยหลังทีละ 2",code:"range(10,0,____)",ans:"-2",explanation:"step=-2"},
-  {id:704,mode:'LOGIC',level:7,text:"ตรวจสอบหลายชนิดพร้อมกัน",code:"isinstance(x,____)",ans:"(int, float)",explanation:"ส่ง tuple ชนิดข้อมูล"},
-  {id:705,mode:'FUNC',level:7,text:"Return หลายค่า",code:"return a ____ b",ans:",",explanation:"คั่นด้วย comma"},
-  {id:706,mode:'FUNC',level:7,text:"Recursive function",code:"return n * ____(n-1)",ans:"fact",explanation:"เรียกตัวเอง"},
-  {id:707,mode:'DATA',level:7,text:"List comprehension with if",code:"[x for x in r ____ x>0]",ans:"if",explanation:"if ใน comprehension"},
-  {id:708,mode:'DATA',level:7,text:"Sort reverse",code:"nums.sort(reverse=____)",ans:"True",explanation:"reverse=True"},
-  {id:709,mode:'DATA',level:7,text:"ลบ key จาก dict",code:"data.____('age')",ans:"pop",explanation:"pop ลบ key"},
-  {id:710,mode:'DATA',level:7,text:"แปลง tuple เป็น list",code:"lst = ____(t)",ans:"list",explanation:"list() แปลง"},
-  {id:711,mode:'FUNC',level:7,text:"nonlocal scope",code:"____ x",ans:"nonlocal",explanation:"nonlocal แก้ตัวแปรชั้นนอก"},
-  {id:712,mode:'FUNC',level:7,text:"Decorator",code:"____timer",ans:"@",explanation:"@ decorator"},
-  {id:713,mode:'FUNC',level:7,text:"Generator yield",code:"____ 1",ans:"yield",explanation:"yield สร้าง generator"},
-  {id:714,mode:'FUNC',level:7,text:"Type annotation return",code:"def f(a:int) ____ int:",ans:"->",explanation:"-> บอกชนิดค่าคืน"},
-  {id:715,mode:'DATA',level:7,text:"Dict comprehension",code:"{x:x*x ____ x in r}",ans:"for",explanation:"for ใน dict comprehension"},
-  {id:716,mode:'DATA',level:7,text:"Zip สองลิสต์",code:"list(____(a,b))",ans:"zip",explanation:"zip รวมตามตำแหน่ง"},
-  {id:717,mode:'DATA',level:7,text:"Deep copy",code:"b = copy.____(a)",ans:"deepcopy",explanation:"deepcopy คัดลอกซ้อน"},
-  {id:718,mode:'DATA',level:7,text:"Frozen set",code:"s = ____([1,2,3])",ans:"frozenset",explanation:"frozenset ไม่แก้ได้"},
-  {id:719,mode:'LOGIC',level:7,text:"XOR operator",code:"if a ____ b:",ans:"^",explanation:"^ XOR"},
-  {id:720,mode:'LOOPS',level:7,text:"Walrus in while",code:"while (l:=input()) ____ 'q':",ans:"!=",explanation:"!= ไม่เท่ากับ"},
+// ดึงโจทย์ทั้งหมดจาก questions.js ฝั่งเซิร์ฟเวอร์มาไว้ที่นี่แบบเป๊ะๆ
+const SOLO_QUESTIONS = [
+  { id:101, mode:'BASICS', level:1, text:"โจทย์: คำสั่งแสดงผลข้อความออกหน้าจอ\nคำแนะนำ: เติมชื่อฟังก์ชันที่ใช้แสดงข้อความหรือค่าตัวแปรออกทางหน้าจอ", code:"____('Hello World')", ans:"print", explanation:"print() ใช้แสดงผลข้อมูลออกหน้าจอ" },
+  { id:102, mode:'BASICS', level:1, text:"โจทย์: รับค่าจากผู้ใช้งาน (Keyboard)\nคำแนะนำ: เติมฟังก์ชันที่ใช้รับค่าจากคีย์บอร์ด แล้วเก็บไว้ในตัวแปร", code:"name = ____('Enter Name: ')", ans:"input", explanation:"input() รับค่าจากผู้ใช้ และค่าที่ได้จะเป็น string เสมอ" },
+  { id:103, mode:'BASICS', level:1, text:"โจทย์: แปลงข้อความให้เป็นจำนวนเต็ม\nคำแนะนำ: เติมฟังก์ชันที่ใช้แปลง string เป็นจำนวนเต็ม", code:"score = ____('50')", ans:"int", explanation:"int() ใช้แปลงข้อมูลเป็นจำนวนเต็ม" },
+  { id:104, mode:'BASICS', level:1, text:"โจทย์: แปลงตัวเลขให้เป็นข้อความ\nคำแนะนำ: เติมฟังก์ชันที่ใช้แปลงตัวเลขเป็น string เพื่อเชื่อมกับข้อความอื่นได้", code:"msg = 'Age: ' + ____(20)", ans:"str", explanation:"str() แปลงตัวเลขเป็นข้อความ" },
+  { id:105, mode:'BASICS', level:1, text:"โจทย์: ตรวจสอบชนิดของตัวแปร\nคำแนะนำ: เติมฟังก์ชันที่ใช้ตรวจสอบประเภทข้อมูลของค่าที่ส่งเข้าไป", code:"____(3.14)", ans:"type", explanation:"type() ใช้ดูชนิดข้อมูล" },
+  { id:106, mode:'BASICS', level:1, text:"โจทย์: ตัวเลขทศนิยมเรียกว่าอะไร\nคำแนะนำ: เติมชนิดข้อมูลสำหรับเลขที่มีจุดทศนิยม", code:"price = 99.5 # เป็นข้อมูลชนิด ____", ans:"float", explanation:"float คือเลขทศนิยม" },
+  { id:107, mode:'BASICS', level:1, text:"โจทย์: ค่าความจริง 'เท็จ'\nคำแนะนำ: เติมค่าบูลีนที่หมายถึง “เท็จ” (ต้องตัวใหญ่)", code:"is_active = ____", ans:"False", explanation:"Boolean มี True และ False เท่านั้น" },
+  { id:108, mode:'BASICS', level:1, text:"โจทย์: ค่าความจริง 'จริง'\nคำแนะนำ: เติมค่าบูลีนที่หมายถึง “จริง”", code:"is_ready = ____", ans:"True", explanation:"ต้องพิมพ์ตัวใหญ่เท่านั้น" },
+  { id:109, mode:'BASICS', level:1, text:"โจทย์: สัญลักษณ์ Comment\nคำแนะนำ: เติมสัญลักษณ์ที่ใช้เขียนคำอธิบายโค้ดโดยไม่ให้โปรแกรมทำงาน", code:"____ This is a comment", ans:"#", explanation:"# ใช้เขียน comment" },
+  { id:110, mode:'BASICS', level:1, text:"โจทย์: ลบตัวแปร\nคำแนะนำ: เติมคำสั่งที่ใช้ลบตัวแปรออกจากหน่วยความจำ", code:"____ my_var", ans:"del", explanation:"del ใช้ลบตัวแปร" },
+  { id:111, mode:'BASICS', level:1, text:"โจทย์: กำหนดค่าตัวแปร\nคำแนะนำ: เติมเครื่องหมายที่ใช้กำหนดค่าให้ตัวแปร", code:"x ____ 10", ans:"=", explanation:"= ใช้กำหนดค่า" },
+  { id:112, mode:'BASICS', level:1, text:"โจทย์: บวกเลข\nคำแนะนำ: เติมเครื่องหมายที่ใช้บวกค่า", code:"5 ____ 3", ans:"+", explanation:"+ ใช้บวก" },
+  { id:113, mode:'BASICS', level:1, text:"โจทย์: ลบเลข\nคำแนะนำ: เติมเครื่องหมายที่ใช้ลบ", code:"10 ____ 4", ans:"-", explanation:"- ใช้ลบ" },
+  { id:114, mode:'BASICS', level:1, text:"โจทย์: คูณเลข\nคำแนะนำ: เติมเครื่องหมายที่ใช้คูณ", code:"6 ____ 2", ans:"*", explanation:"* ใช้คูณ" },
+  { id:115, mode:'BASICS', level:1, text:"โจทย์: หารเลข\nคำแนะนำ: เติมเครื่องหมายที่ใช้หาร", code:"8 ____ 2", ans:"/", explanation:"/ ใช้หาร" },
+  { id:116, mode:'BASICS', level:1, text:"โจทย์: หารเอาเฉพาะจำนวนเต็ม\nคำแนะนำ: เติมเครื่องหมายหารแบบปัดเศษทิ้ง", code:"9 ____ 2", ans:"//", explanation:"// หารแบบปัดเศษทิ้ง" },
+  { id:117, mode:'BASICS', level:1, text:"โจทย์: หาเศษจากการหาร\nคำแนะนำ: เติมเครื่องหมายหาเศษ (Modulo)", code:"10 ____ 3", ans:"%", explanation:"% คือ modulo" },
+  { id:118, mode:'BASICS', level:1, text:"โจทย์: ยกกำลัง\nคำแนะนำ: เติมเครื่องหมายยกกำลัง", code:"2 ____ 3", ans:"**", explanation:"** คือยกกำลัง" },
+  { id:119, mode:'BASICS', level:1, text:"โจทย์: แปลงเป็นทศนิยม\nคำแนะนำ: เติมฟังก์ชันที่ใช้แปลง int เป็น float", code:"price = ____(10)", ans:"float", explanation:"float() แปลงเป็นทศนิยม" },
+  { id:120, mode:'BASICS', level:1, text:"โจทย์: รับค่าตัวเลขจากผู้ใช้แล้วแปลงทันที\nคำแนะนำ: เติมฟังก์ชันที่ใช้แปลงค่าที่รับจาก input ให้เป็นจำนวนเต็ม", code:"age = ____(input('Age: '))", ans:"int", explanation:"ต้องแปลงก่อนใช้งานทางคณิตศาสตร์" },
+
+  { id:221, mode:'LOGIC', level:2, text:"โจทย์: คำสั่งตรวจสอบเงื่อนไข (ถ้า...)\nคำแนะนำ: เติมคำสั่งที่ใช้เริ่มต้นการเขียนเงื่อนไข หากเป็นจริงจึงจะทำงาน", code:"____ x > 10:", ans:"if", explanation:"if ใช้สร้างเงื่อนไข" },
+  { id:222, mode:'LOGIC', level:2, text:"โจทย์: เงื่อนไขทางเลือกเพิ่มเติม\nคำแนะนำ: เติมคำสั่งที่ใช้ตรวจสอบเงื่อนไขอื่น เมื่อ if ก่อนหน้าไม่เป็นจริง", code:"____ x > 5:", ans:"elif", explanation:"elif จะถูกตรวจสอบเมื่อ if ก่อนหน้าเป็น False" },
+  { id:223, mode:'LOGIC', level:2, text:"โจทย์: กรณีสุดท้าย\nคำแนะนำ: เติมคำสั่งที่ใช้ทำงานเมื่อไม่มีเงื่อนไขใดเป็นจริงเลย", code:"____:", ans:"else", explanation:"else ทำงานเมื่อทุก if และ elif ก่อนหน้าเป็น False" },
+  { id:224, mode:'LOGIC', level:2, text:"โจทย์: เครื่องหมายเปรียบเทียบ “เท่ากับ”\nคำแนะนำ: เติมเครื่องหมายที่ใช้เปรียบเทียบว่าค่าทั้งสองด้านเท่ากันหรือไม่", code:"if password ____ '1234':", ans:"==", explanation:"== ใช้เปรียบเทียบค่า ห้ามสับสนกับ = ที่ใช้กำหนดค่า" },
+  { id:225, mode:'LOGIC', level:2, text:"โจทย์: เครื่องหมาย “ไม่เท่ากับ”\nคำแนะนำ: เติมเครื่องหมายที่ใช้ตรวจสอบว่าค่าทั้งสองไม่เท่ากัน", code:"if status ____ 'offline':", ans:"!=", explanation:"!= หมายถึง Not Equal" },
+  { id:226, mode:'LOGIC', level:2, text:"โจทย์: เครื่องหมาย “มากกว่า”\nคำแนะนำ: เติมเครื่องหมายที่ใช้ตรวจสอบว่าค่าทางซ้ายมากกว่าทางขวา", code:"if score ____ 80:", ans:">", explanation:"> ใช้เปรียบเทียบค่ามากกว่า" },
+  { id:227, mode:'LOGIC', level:2, text:"โจทย์: เครื่องหมาย “น้อยกว่า”\nคำแนะนำ: เติมเครื่องหมายที่ใช้ตรวจสอบว่าค่าทางซ้ายน้อยกว่าทางขวา", code:"if score ____ 50:", ans:"<", explanation:"< ใช้เปรียบเทียบค่าน้อยกว่า" },
+  { id:228, mode:'LOGIC', level:2, text:"โจทย์: มากกว่าหรือเท่ากับ\nคำแนะนำ: เติมเครื่องหมายที่ใช้ตรวจสอบว่าค่าทางซ้ายมากกว่าหรือเท่ากับทางขวา", code:"if age ____ 18:", ans:">=", explanation:">= หมายถึง มากกว่าหรือเท่ากับ" },
+  { id:229, mode:'LOGIC', level:2, text:"โจทย์: น้อยกว่าหรือเท่ากับ\nคำแนะนำ: เติมเครื่องหมายที่ใช้ตรวจสอบว่าค่าทางซ้ายไม่เกินค่าทางขวา", code:"if score ____ 60:", ans:"<=", explanation:"<= หมายถึง น้อยกว่าหรือเท่ากับ" },
+  { id:230, mode:'LOGIC', level:2, text:"โจทย์: ตรรกะ 'และ'\nคำแนะนำ: เติมคำสั่งที่ใช้เมื่อเงื่อนไขทั้งสองด้านต้องเป็นจริงพร้อมกัน", code:"if key > 0 ____ level > 5:", ans:"and", explanation:"and จะให้ผล True ก็ต่อเมื่อทั้งสองเงื่อนไขเป็นจริง" },
+  { id:231, mode:'LOGIC', level:2, text:"โจทย์: ตรรกะ 'หรือ'\nคำแนะนำ: เติมคำสั่งที่ใช้เมื่อเงื่อนไขใดเงื่อนไขหนึ่งเป็นจริงก็พอ", code:"if role == 'admin' ____ score > 90:", ans:"or", explanation:"or ให้ผล True หากมีเงื่อนไขใดเงื่อนไขหนึ่งเป็นจริง" },
+  { id:232, mode:'LOGIC', level:2, text:"โจทย์: กลับค่าความจริง\nคำแนะนำ: เติมคำสั่งที่ใช้สลับค่าจาก True เป็น False หรือจาก False เป็น True", code:"if ____ is_empty:", ans:"not", explanation:"not ใช้กลับค่าบูลีน" },
+  { id:233, mode:'LOGIC', level:2, text:"โจทย์: ตรวจสอบว่าเป็นสมาชิกในกลุ่ม\nคำแนะนำ: เติมคำสั่งที่ใช้ตรวจสอบว่าค่าหนึ่งอยู่ใน list หรือไม่", code:"if 'a' ____ ['a','b','c']:", ans:"in", explanation:"in ใช้ตรวจสอบสมาชิกใน sequence" },
+  { id:234, mode:'LOGIC', level:2, text:"โจทย์: ตรวจสอบว่า “ไม่อยู่” ในกลุ่ม\nคำแนะนำ: เติมคำสั่งที่ใช้ตรวจสอบว่าค่าไม่อยู่ใน list", code:"if 'x' ____ ['a','b']:", ans:"not in", explanation:"not in ใช้ตรวจสอบว่าไม่มีค่านั้นอยู่" },
+  { id:235, mode:'LOGIC', level:2, text:"โจทย์: เขียนเงื่อนไขแบบบรรทัดเดียว (Ternary)\nคำแนะนำ: เติมคำที่ใช้เขียนเงื่อนไขแบบสั้นในบรรทัดเดียว", code:"result = 'Pass' ____ score >= 50 else 'Fail'", ans:"if", explanation:"เป็นรูปแบบย่อของ if-else" },
+  { id:236, mode:'LOGIC', level:2, text:"โจทย์: ตรวจสอบชนิดข้อมูล\nคำแนะนำ: เติมฟังก์ชันที่ใช้เช็คว่า object เป็นชนิดข้อมูลที่กำหนดหรือไม่", code:"____(x, int)", ans:"isinstance", explanation:"isinstance(obj, type) ใช้ตรวจสอบประเภทข้อมูล" },
+  { id:237, mode:'LOGIC', level:2, text:"โจทย์: ตรวจสอบว่าเป็น None\nคำแนะนำ: เติมคำที่ใช้เปรียบเทียบว่า object เป็น None หรือไม่", code:"if x ____ None:", ans:"is", explanation:"ใช้ is แทน == เมื่อตรวจสอบ None" },
+  { id:238, mode:'LOGIC', level:2, text:"โจทย์: ตรวจสอบว่าไม่ใช่ None\nคำแนะนำ: เติมคำที่ใช้เปรียบเทียบว่า object ไม่ใช่ None", code:"if x ____ None:", ans:"is not", explanation:"is not ใช้ตรวจสอบว่าไม่ใช่ None" },
+  { id:239, mode:'LOGIC', level:2, text:"โจทย์: ตรวจสอบความยาวมากกว่า 0\nคำแนะนำ: เติมเครื่องหมายที่ใช้เปรียบเทียบความยาวว่ามากกว่า 0", code:"if len(name) ____ 0:", ans:">", explanation:"> ใช้เปรียบเทียบค่ามากกว่า" },
+  { id:240, mode:'LOGIC', level:2, text:"โจทย์: เงื่อนไขซ้อน (Nested)\nคำแนะนำ: เติมคำศัพท์ที่ใช้เรียกโครงสร้าง if ที่อยู่ภายใน if อีกที", code:"____ condition", ans:"nested", explanation:"nested condition คือเงื่อนไขซ้อนกันหลายชั้น" },
+
+  { id:341, mode:'LOOPS', level:3, text:"โจทย์: วนซ้ำแบบรู้จำนวนรอบ\nคำแนะนำ: เติมคำสั่งที่ใช้วนซ้ำตามจำนวนรอบที่กำหนดไว้แน่นอน", code:"____ i in range(10):", ans:"for", explanation:"for ใช้วนซ้ำตามจำนวนหรือข้อมูลในลำดับ" },
+  { id:342, mode:'LOOPS', level:3, text:"โจทย์: สร้างชุดตัวเลขตั้งแต่ 0 ถึง 4\nคำแนะนำ: เติมฟังก์ชันที่ใช้สร้างลำดับตัวเลขตามจำนวนที่กำหนด", code:"for i in ____(5):", ans:"range", explanation:"range(5) จะได้ตัวเลข 0 ถึง 4" },
+  { id:343, mode:'LOOPS', level:3, text:"โจทย์: วนซ้ำตราบเท่าที่เงื่อนไขเป็นจริง\nคำแนะนำ: เติมคำสั่งที่ใช้วนซ้ำแบบไม่รู้จำนวนรอบล่วงหน้า แต่ขึ้นกับเงื่อนไข", code:"____ hp > 0:", ans:"while", explanation:"while จะทำงานซ้ำตราบใดที่เงื่อนไขยังเป็น True" },
+  { id:344, mode:'LOOPS', level:3, text:"โจทย์: หยุดการทำงานของลูปทันที\nคำแนะนำ: เติมคำสั่งที่ใช้จบการวนซ้ำทันทีแม้ยังไม่ครบจำนวนรอบ", code:"if dead: ____", ans:"break", explanation:"break ใช้ออกจากลูปทันที" },
+  { id:345, mode:'LOOPS', level:3, text:"โจทย์: ข้ามรอบปัจจุบัน\nคำแนะนำ: เติมคำสั่งที่ใช้ข้ามคำสั่งที่เหลือในรอบนี้ แล้วไปเริ่มรอบใหม่", code:"if skip: ____", ans:"continue", explanation:"continue จะข้ามไปเริ่มรอบถัดไป" },
+  { id:346, mode:'LOOPS', level:3, text:"โจทย์: วนซ้ำทีละตัวอักษรในข้อความ\nคำแนะนำ: เติมคำที่ใช้กำหนดว่าข้อมูลที่ต้องการวนอยู่ในตัวแปรใด", code:"for char ____ 'Python':", ans:"in", explanation:"in ใช้ระบุลำดับข้อมูลที่ต้องการวน" },
+  { id:347, mode:'LOOPS', level:3, text:"โจทย์: range แบบกำหนดจุดเริ่มต้นและจุดสิ้นสุด\nคำแนะนำ: เติมตัวเลขที่ทำให้ range ได้ค่า 1, 2, 3", code:"range(1, ____)", ans:"4", explanation:"ค่าหยุดจะไม่ถูกรวมในผลลัพธ์ (Stop limit)" },
+  { id:348, mode:'LOOPS', level:3, text:"โจทย์: ลูปไม่สิ้นสุด\nคำแนะนำ: เติมค่าที่ทำให้ while ทำงานตลอดไปจนกว่าจะมี break", code:"while ____:", ans:"True", explanation:"while True คือ Infinite Loop" },
+  { id:349, mode:'LOOPS', level:3, text:"โจทย์: วนซ้ำพร้อมลำดับที่ (Index)\nคำแนะนำ: เติมฟังก์ชันที่ใช้ดึงทั้ง index และค่าในลูปพร้อมกัน", code:"for i, val in ____(['a','b']):", ans:"enumerate", explanation:"enumerate() คืนค่า index และ value" },
+  { id:350, mode:'LOOPS', level:3, text:"โจทย์: เพิ่มค่าทีละหนึ่งในการวนซ้ำ\nคำแนะนำ: เติมเครื่องหมายที่ใช้เพิ่มค่าตัวแปรสะสม", code:"count ____ 1", ans:"+=", explanation:"+= ใช้เพิ่มค่าเข้าไปในตัวแปรเดิม" },
+  { id:351, mode:'LOOPS', level:3, text:"โจทย์: ลดค่าทีละหนึ่ง\nคำแนะนำ: เติมเครื่องหมายที่ใช้ลดค่าตัวแปรลง", code:"count ____ 1", ans:"-=", explanation:"-= ใช้ลดค่าตัวแปร" },
+  { id:352, mode:'LOOPS', level:3, text:"โจทย์: คูณสะสมค่า\nคำแนะนำ: เติมเครื่องหมายที่ใช้คูณค่ากับตัวแปรเดิม", code:"total ____ i", ans:"*=", explanation:"*= ใช้คูณแล้วเก็บกลับ" },
+  { id:353, mode:'LOOPS', level:3, text:"โจทย์: หารสะสมค่า\nคำแนะนำ: เติมเครื่องหมายที่ใช้หารค่ากับตัวแปรเดิม", code:"total ____ i", ans:"/=", explanation:"/= ใช้หารแล้วเก็บกลับ" },
+  { id:354, mode:'LOOPS', level:3, text:"โจทย์: วนย้อนกลับ\nคำแนะนำ: เติม step ที่ทำให้ range(10,0,?) นับถอยหลัง", code:"range(10, 0, ____)", ans:"-1", explanation:"step ติดลบทำให้ลูปนับถอยหลัง" },
+  { id:355, mode:'LOOPS', level:3, text:"โจทย์: วนลูป list\nคำแนะนำ: เติมคำที่ใช้ระบุว่าต้องการวนใน list ตัวแปรใด", code:"for item ____ my_list:", ans:"in", explanation:"in ใช้ระบุลำดับข้อมูล" },
+  { id:356, mode:'LOOPS', level:3, text:"โจทย์: ใช้ else กับ loop\nคำแนะนำ: เติมคำสั่งที่ทำงานเมื่อ loop จบโดยไม่มี break", code:"____: print('Done')", ans:"else", explanation:"else จะทำงานเมื่อ loop จบตามปกติ" },
+  { id:357, mode:'LOOPS', level:3, text:"โจทย์: ตรวจสอบเลขคู่\nคำแนะนำ: เติมเครื่องหมายเปรียบเทียบที่ใช้ตรวจสอบว่าหาร 2 ลงตัว", code:"if i % 2 ____ 0:", ans:"==", explanation:"ถ้าเศษเป็น 0 แสดงว่าเป็นเลขคู่" },
+  { id:358, mode:'LOOPS', level:3, text:"โจทย์: break เมื่อเจอค่าที่ต้องการ\nคำแนะนำ: เติมคำสั่งที่ใช้หยุดลูปเมื่อ i เท่ากับ 5", code:"if i==5: ____", ans:"break", explanation:"break ออกจากลูปทันที" },
+  { id:359, mode:'LOOPS', level:3, text:"โจทย์: สร้าง list จากลูปแบบย่อ\nคำแนะนำ: เติมคำที่ใช้เริ่มต้นการเขียน List Comprehension", code:"[x ____ x in range(5)]", ans:"for", explanation:"for ใช้ใน list comprehension" },
+
+  { id:461, mode:'DATA', level:4, text:"โจทย์: สร้างลิสต์เก็บข้อมูลหลายค่า\nคำแนะนำ: เติมสัญลักษณ์ที่ใช้สร้าง list เพื่อเก็บตัวเลข", code:"nums = ____ 1, 2, 3 ____", ans:"[]", explanation:"วงเล็บเหลี่ยม [] ใช้สร้าง list" },
+  { id:462, mode:'DATA', level:4, text:"โจทย์: เข้าถึงข้อมูลตัวแรกของลิสต์\nคำแนะนำ: เติม index ที่ใช้ดึงสมาชิกตัวแรกของ list", code:"print(nums[____])", ans:"0", explanation:"index เริ่มที่ 0 ดังนั้นตัวแรกคือ index 0" },
+  { id:463, mode:'DATA', level:4, text:"โจทย์: เพิ่มข้อมูลเข้า list\nคำแนะนำ: เติม method ที่ใช้เพิ่มค่า 40 เข้าไปท้าย list", code:"nums.____(40)", ans:"append", explanation:"append ใช้เพิ่มข้อมูลต่อท้าย list" },
+  { id:464, mode:'DATA', level:4, text:"โจทย์: ลบข้อมูลตัวสุดท้าย\nคำแนะนำ: เติม method ที่ใช้ลบข้อมูลตัวสุดท้ายของ list", code:"nums.____()", ans:"pop", explanation:"pop() ลบและคืนค่าตัวสุดท้ายของ list" },
+  { id:465, mode:'DATA', level:4, text:"โจทย์: หาความยาวของ list\nคำแนะนำ: เติมฟังก์ชันที่ใช้หาจำนวนสมาชิกใน list", code:"____(nums)", ans:"len", explanation:"len ใช้หาความยาวของข้อมูล" },
+  { id:466, mode:'DATA', level:4, text:"โจทย์: เรียงลำดับข้อมูล\nคำแนะนำ: เติม method ที่ใช้เรียง list จากน้อยไปมาก", code:"nums.____()", ans:"sort", explanation:"sort() ใช้เรียงข้อมูลใน list" },
+  { id:467, mode:'DATA', level:4, text:"โจทย์: กลับลำดับข้อมูล\nคำแนะนำ: เติม method ที่ใช้กลับลำดับสมาชิกใน list", code:"nums.____()", ans:"reverse", explanation:"reverse() ใช้กลับลำดับสมาชิก" },
+  { id:468, mode:'DATA', level:4, text:"โจทย์: ตรวจสอบว่าค่าอยู่ใน list หรือไม่\nคำแนะนำ: เติม operator ที่ใช้ตรวจสอบว่า 2 อยู่ใน list หรือไม่", code:"if 2 ____ nums:", ans:"in", explanation:"in ใช้ตรวจสอบสมาชิกในลำดับข้อมูล" },
+  { id:469, mode:'DATA', level:4, text:"โจทย์: สร้าง tuple\nคำแนะนำ: เติมสัญลักษณ์ที่ใช้สร้าง tuple", code:"t = ____ 1, 2, 3 ____", ans:"()", explanation:"วงเล็บกลม () ใช้สร้าง tuple" },
+  { id:470, mode:'DATA', level:4, text:"โจทย์: สร้าง dictionary\nคำแนะนำ: เติมสัญลักษณ์ที่ใช้สร้าง dict แบบ Key-Value", code:"data = ____ 'name': 'Ann' ____", ans:"{}", explanation:"วงเล็บปีกกา {} ใช้สร้าง dictionary" },
+  { id:471, mode:'DATA', level:4, text:"โจทย์: เข้าถึงค่าใน dictionary\nคำแนะนำ: เติม key ที่ใช้ดึงค่า 'Ann'", code:"print(data['____'])", ans:"name", explanation:"ใช้ key ในวงเล็บเพื่อเข้าถึงค่าใน dict" },
+  { id:472, mode:'DATA', level:4, text:"โจทย์: เพิ่ม key ใหม่ใน dictionary\nคำแนะนำ: เติม key ที่ใช้เพิ่มอายุ 20", code:"data['____'] = 20", ans:"age", explanation:"สามารถเพิ่ม key ใหม่โดยกำหนดค่าให้ dict ได้เลย" },
+  { id:473, mode:'DATA', level:4, text:"โจทย์: ดู key ทั้งหมด\nคำแนะนำ: เติม method ที่ใช้ดู key ของ dictionary", code:"print(data.____())", ans:"keys", explanation:"keys() คืนค่า key ทั้งหมดใน dict" },
+  { id:474, mode:'DATA', level:4, text:"โจทย์: ดู value ทั้งหมด\nคำแนะนำ: เติม method ที่ใช้ดู value ของ dictionary", code:"print(data.____())", ans:"values", explanation:"values() คืนค่า value ทั้งหมด" },
+  { id:475, mode:'DATA', level:4, text:"โจทย์: วนลูป dictionary แบบ key และ value\nคำแนะนำ: เติม method ที่ใช้วนทั้ง key และ value", code:"for k,v in data.____():", ans:"items", explanation:"items() คืนค่าเป็นคู่ key,value" },
+  { id:476, mode:'DATA', level:4, text:"โจทย์: สร้าง set\nคำแนะนำ: เติมฟังก์ชันที่ใช้สร้าง set จาก list", code:"s = ____(nums)", ans:"set", explanation:"set ใช้เก็บข้อมูลไม่ซ้ำ" },
+  { id:477, mode:'DATA', level:4, text:"โจทย์: เพิ่มข้อมูลใน set\nคำแนะนำ: เติม method ที่ใช้เพิ่มข้อมูลเข้า set", code:"s.____(3)", ans:"add", explanation:"add ใช้เพิ่มข้อมูลใน set" },
+  { id:478, mode:'DATA', level:4, text:"โจทย์: รวม list สองชุด\nคำแนะนำ: เติม operator ที่ใช้รวม list", code:"c = a ____ b", ans:"+", explanation:"+ ใช้รวม list สองชุดเข้าด้วยกัน" },
+
+  { id:581, mode:'FUNC', level:5, text:"โจทย์: สร้างฟังก์ชันใหม่\nคำแนะนำ: เติม keyword ที่ใช้ประกาศฟังก์ชันใน Python", code:"____ greet():", ans:"def", explanation:"def ใช้สำหรับประกาศฟังก์ชัน" },
+  { id:582, mode:'FUNC', level:5, text:"โจทย์: ส่งค่ากลับจากฟังก์ชัน\nคำแนะนำ: เติม keyword ที่ใช้ส่งค่ากลับออกจากฟังก์ชัน", code:"____ a + b", ans:"return", explanation:"return ใช้ส่งค่ากลับจากฟังก์ชัน" },
+  { id:583, mode:'FUNC', level:5, text:"โจทย์: รับพารามิเตอร์\nคำแนะนำ: เติมชื่อตัวแปรพารามิเตอร์ในฟังก์ชันให้ตรงกับที่ Print", code:"def greet(____):\n  print('Hi', name)", ans:"name", explanation:"name คือพารามิเตอร์ที่รับค่าจากภายนอก" },
+  { id:584, mode:'FUNC', level:5, text:"โจทย์: ฟังก์ชันมีค่าเริ่มต้น\nคำแนะนำ: เติมค่า default ให้พารามิเตอร์ name เป็น 'Guest'", code:"def greet(name=____):", ans:"'Guest'", explanation:"สามารถกำหนดค่าเริ่มต้นให้พารามิเตอร์ได้" },
+  { id:585, mode:'FUNC', level:5, text:"โจทย์: ฟังก์ชันหลายพารามิเตอร์\nคำแนะนำ: เติมเครื่องหมายที่ใช้คั่นพารามิเตอร์ a และ b", code:"def add(a ____ b):", ans:",", explanation:"ใช้เครื่องหมาย comma (,) คั่นพารามิเตอร์" },
+  { id:586, mode:'FUNC', level:5, text:"โจทย์: Import โมดูล\nคำแนะนำ: เติม keyword ที่ใช้เรียกใช้งานโมดูลภายนอก", code:"____ math", ans:"import", explanation:"import ใช้เรียกใช้งานโมดูล" },
+  { id:587, mode:'FUNC', level:5, text:"โจทย์: Import แบบย่อชื่อ\nคำแนะนำ: เติม keyword ที่ใช้ตั้งชื่อย่อให้โมดูล", code:"import math ____ m", ans:"as", explanation:"as ใช้ตั้งชื่อใหม่ให้โมดูล (Alias)" },
+  { id:588, mode:'FUNC', level:5, text:"โจทย์: ฟังก์ชันไม่คืนค่า (ยังไม่เขียนโค้ด)\nคำแนะนำ: เติมคำสั่งที่ใช้จบฟังก์ชันโดยไม่ทำอะไรเลย", code:"def test():\n  ____", ans:"pass", explanation:"pass ใช้ขัดตาทัพเมื่อยังไม่ต้องการเขียนโค้ด" },
+  { id:589, mode:'FUNC', level:5, text:"โจทย์: ฟังก์ชัน lambda\nคำแนะนำ: เติม keyword ที่ใช้สร้างฟังก์ชันสั้นแบบไม่ตั้งชื่อ", code:"square = ____ x: x*x", ans:"lambda", explanation:"lambda ใช้สร้างฟังก์ชันแบบสั้น" },
+  { id:590, mode:'FUNC', level:5, text:"โจทย์: ใช้ *args รับค่าหลายตัว\nคำแนะนำ: เติมสัญลักษณ์ที่ใช้รับค่าหลายตัวในพารามิเตอร์แบบ Tuple", code:"def add(____numbers):", ans:"*", explanation:"* ใช้รับ argument หลายค่า" },
+  { id:591, mode:'FUNC', level:5, text:"โจทย์: ใช้ **kwargs\nคำแนะนำ: เติมสัญลักษณ์ที่ใช้รับค่าแบบ key=value หลายตัวเป็น Dict", code:"def show(____data):", ans:"**", explanation:"** ใช้รับค่าแบบ dictionary" },
+  { id:592, mode:'FUNC', level:5, text:"โจทย์: ตรวจสอบเอกสารอธิบายฟังก์ชัน\nคำแนะนำ: เติมฟังก์ชันที่ใช้ดู documentation ของโค้ด", code:"print(____(len))", ans:"help", explanation:"help() ใช้ดูคำอธิบายฟังก์ชัน" },
+  { id:593, mode:'FUNC', level:5, text:"โจทย์: ใช้ global\nคำแนะนำ: เติม keyword ที่ใช้ประกาศตัวแปร global ภายในฟังก์ชัน", code:"____ x\nx = 5", ans:"global", explanation:"global ทำให้แก้ค่าตัวแปรระดับภายนอกได้" },
+  { id:594, mode:'FUNC', level:5, text:"โจทย์: Import ฟังก์ชันเฉพาะ\nคำแนะนำ: เติม keyword ที่ใช้เลือก import เฉพาะบางฟังก์ชันจากโมดูล", code:"from math ____ sqrt", ans:"import", explanation:"from ... import ใช้เรียกเฉพาะฟังก์ชันที่ต้องการ" },
+
+  { id:601, mode:'OOP', level:5, text:"โจทย์: สร้างคลาส\nคำแนะนำ: เติม keyword ที่ใช้สร้างคลาส (แม่พิมพ์) ใน Python", code:"____ Person:\n  pass", ans:"class", explanation:"class ใช้สำหรับสร้างแม่แบบของวัตถุ" },
+  { id:602, mode:'OOP', level:5, text:"โจทย์: สร้าง constructor\nคำแนะนำ: เติมชื่อเมธอดพิเศษที่ทำงานอัตโนมัติเมื่อสร้าง object", code:"def ______(self):", ans:"__init__", explanation:"__init__ คือ constructor จะทำงานทันทีเมื่อสร้าง object" },
+  { id:603, mode:'OOP', level:5, text:"โจทย์: พารามิเตอร์ self\nคำแนะนำ: เติมพารามิเตอร์ตัวแรกของเมธอดในคลาส", code:"def greet(____):", ans:"self", explanation:"self ใช้อ้างอิง object ปัจจุบัน" },
+  { id:604, mode:'OOP', level:5, text:"โจทย์: สร้าง object จากคลาส\nคำแนะนำ: เติมชื่อคลาสเพื่อสร้าง object ให้ตัวแปร p", code:"p = ____()", ans:"Person", explanation:"ใช้ชื่อคลาสตามด้วย () เพื่อสร้าง object" },
+  { id:605, mode:'OOP', level:5, text:"โจทย์: การสืบทอดคลาส (Inheritance)\nคำแนะนำ: เติมชื่อคลาสแม่เพื่อให้ Student สืบทอดมา", code:"class Student(____):", ans:"Person", explanation:"Student จะได้รับคุณสมบัติจาก Person" },
+  { id:606, mode:'OOP', level:5, text:"โจทย์: เรียก constructor ของคลาสแม่\nคำแนะนำ: เติมฟังก์ชันที่ใช้เรียก constructor ของ parent class", code:"____().__init__(name)", ans:"super", explanation:"super() ใช้เรียกเมธอดของคลาสแม่" },
+  { id:607, mode:'OOP', level:5, text:"โจทย์: เมธอดพิเศษแสดงข้อความ\nคำแนะนำ: เติมชื่อเมธอดที่ใช้กำหนดข้อความเวลา print object", code:"def ______(self):\n  return 'Object'", ans:"__str__", explanation:"__str__ ใช้กำหนดข้อความเมื่อแปลง object เป็น string" },
+  { id:608, mode:'OOP', level:5, text:"โจทย์: กำหนดค่าเริ่มต้นให้ class variable\nคำแนะนำ: เติมค่าตัวเลขที่ใช้เป็นค่าเริ่มต้นของตัวแปร count", code:"class Person:\n  count = ____", ans:"0", explanation:"class variable ใช้ร่วมกันทุก object" },
+  { id:609, mode:'OOP', level:5, text:"โจทย์: เมธอดของคลาส (Class Method)\nคำแนะนำ: เติม decorator ที่ใช้สร้าง class method", code:"@____\ndef show(cls):", ans:"classmethod", explanation:"@classmethod ใช้สร้างเมธอดระดับคลาส" },
+  { id:610, mode:'OOP', level:5, text:"โจทย์: เมธอด static\nคำแนะนำ: เติม decorator สำหรับ static method", code:"@____\ndef info():", ans:"staticmethod", explanation:"@staticmethod ไม่ต้องใช้ self หรือ cls" },
+  { id:611, mode:'OOP', level:5, text:"โจทย์: สร้าง property\nคำแนะนำ: เติม decorator ที่ใช้สร้าง property ให้เรียกเมธอดเหมือนตัวแปรได้", code:"@____\ndef name(self):", ans:"property", explanation:"@property ทำให้เรียกเมธอดเหมือน attribute" },
+  { id:612, mode:'OOP', level:5, text:"โจทย์: ตั้งค่า property (Setter)\nคำแนะนำ: เติม decorator ที่ใช้ตั้งค่า property name", code:"@name.____\ndef name(self, value):", ans:"setter", explanation:"@name.setter ใช้กำหนดค่าของ property" },
+
+  { id:701, mode:'SURVIVAL', level:6, text:"โจทย์: ตรวจสอบเลขคู่และมากกว่า 10\nคำแนะนำ: เติมตัวดำเนินการตรรกะเพื่อให้เงื่อนไขครบทั้งสองอย่าง", code:"if x % 2 == 0 ____ x > 10:", ans:"and", explanation:"and ใช้เชื่อมเงื่อนไขทั้งสองให้เป็นจริงพร้อมกัน" },
+  { id:702, mode:'SURVIVAL', level:6, text:"โจทย์: ตรวจสอบว่าไม่ใช่ค่าว่าง\nคำแนะนำ: เติมคำสั่งปฏิเสธค่า Boolean", code:"if ____ name:", ans:"not", explanation:"not ใช้กลับค่าความจริง เช่น not '' จะได้ True" },
+  { id:703, mode:'SURVIVAL', level:6, text:"โจทย์: วนซ้ำแบบลดค่าถอยหลัง\nคำแนะนำ: เติมค่าขั้นตอน (step) เพื่อให้นับถอยหลังทีละ 2", code:"for i in range(10, 0, ____):", ans:"-2", explanation:"ค่า step ติดลบทำให้ลดค่าลง" },
+  { id:704, mode:'SURVIVAL', level:6, text:"โจทย์: ออกจากลูปเมื่อเจอเลข 7\nคำแนะนำ: เติมคำสั่งหยุดลูปทันทีเมื่อเงื่อนไขเป็นจริง", code:"if i == 7: ____", ans:"break", explanation:"break ทำให้ลูปหยุดทันที" },
+  { id:705, mode:'SURVIVAL', level:6, text:"โจทย์: ข้ามรอบเมื่อเป็นเลขคี่\nคำแนะนำ: เติมคำสั่งข้ามรอบไปทำงานรอบถัดไป", code:"if i % 2 != 0: ____", ans:"continue", explanation:"continue จะข้ามไปเริ่มรอบถัดไป" },
+  { id:706, mode:'SURVIVAL', level:6, text:"โจทย์: ตรวจสอบชนิดข้อมูล (หลายชนิด)\nคำแนะนำ: เติมฟังก์ชันตรวจสอบชนิดข้อมูล", code:"if ____(x, int):", ans:"isinstance", explanation:"isinstance ใช้ตรวจสอบชนิดข้อมูล" },
+  { id:707, mode:'SURVIVAL', level:6, text:"โจทย์: เงื่อนไขหลายทางเลือก\nคำแนะนำ: เติมคำสั่งเงื่อนไขรองจาก if", code:"____ score > 70:", ans:"elif", explanation:"elif ใช้เพิ่มเงื่อนไขเพิ่มเติม" },
+  { id:708, mode:'SURVIVAL', level:6, text:"โจทย์: ตรวจสอบค่าในช่วง\nคำแนะนำ: เติมตัวดำเนินการเชื่อมเงื่อนไขให้ถูกต้อง", code:"if x > 0 ____ x < 100:", ans:"and", explanation:"ต้องใช้ and เชื่อมสองเงื่อนไข (หรือใช้ 0 < x < 100)" },
+  { id:709, mode:'SURVIVAL', level:6, text:"โจทย์: ฟังก์ชันคืนค่าเงื่อนไข\nคำแนะนำ: เติมคำสั่งส่งค่า Boolean กลับ", code:"____ x % 2 == 0", ans:"return", explanation:"return ใช้ส่งค่ากลับ" },
+  { id:710, mode:'SURVIVAL', level:6, text:"โจทย์: ฟังก์ชันแบบไม่คืนค่า (โชว์อย่างเดียว)\nคำแนะนำ: เติมคำสั่งแสดงผลออกหน้าจอ", code:"____('Hello')", ans:"print", explanation:"print แสดงผลโดยไม่คืนค่า (return None)" },
+  
+  { id:711, mode:'SURVIVAL', level:7, text:"โจทย์: ตรวจสอบค่า None แบบปลอดภัย\nคำแนะนำ: เติมตัวดำเนินการที่ใช้เปรียบเทียบ None อย่างถูกต้อง", code:"if x ____ None:", ans:"is", explanation:"การเปรียบเทียบ None ควรใช้ is ไม่ใช้ ==" },
+  { id:712, mode:'SURVIVAL', level:7, text:"โจทย์: เงื่อนไขแบบ XOR\nคำแนะนำ: เติมตัวดำเนินการที่ทำให้เงื่อนไขเป็นจริงเมื่อมีเพียง 1 เงื่อนไขที่จริง", code:"if a ____ b:", ans:"^", explanation:"^ คือ XOR สำหรับ Boolean/Bitwise" },
+  { id:713, mode:'SURVIVAL', level:7, text:"โจทย์: ตรวจสอบว่าค่าไม่อยู่ในช่วง\nคำแนะนำ: เติมตัวดำเนินการตรรกะในวงเล็บ", code:"if not (0 ____ x <= 100):", ans:"<=", explanation:"ใช้ <= เพื่อสร้างช่วง" },
+  { id:714, mode:'SURVIVAL', level:7, text:"โจทย์: while แบบ assignment expression (Walrus)\nคำแนะนำ: เติมตัวดำเนินการ walrus (assign พร้อมประเมินค่า)", code:"while (line ____ input()) != 'exit':", ans:":=", explanation:":= คือ Walrus operator ใช้กำหนดค่าใน expression" },
+  { id:715, mode:'SURVIVAL', level:7, text:"โจทย์: ใช้ nonlocal แก้ scope\nคำแนะนำ: เติมคำสั่งแก้ตัวแปร x จาก outer function", code:"____ x\nx += 1", ans:"nonlocal", explanation:"nonlocal ใช้แก้ตัวแปรจากฟังก์ชันชั้นนอก (Enclosing)" },
+  { id:716, mode:'SURVIVAL', level:7, text:"โจทย์: Decorator พื้นฐาน\nคำแนะนำ: เติมสัญลักษณ์เรียกใช้งาน decorator ชื่อ timer", code:"____timer\ndef process():", ans:"@", explanation:"@ ใช้เรียก decorator คลุมฟังก์ชัน" },
+  { id:717, mode:'SURVIVAL', level:7, text:"โจทย์: Generator\nคำแนะนำ: เติมคำสั่งคืนค่าแบบ iterator และหยุดชั่วคราว", code:"____ 1", ans:"yield", explanation:"yield ใช้สร้าง generator แทน return" },
+  { id:718, mode:'SURVIVAL', level:7, text:"โจทย์: List comprehension แบบมีเงื่อนไขกรอง (Filter)\nคำแนะนำ: เติมคำสั่งสำหรับเช็คเงื่อนไข x > 0 ท้าย list comprehension", code:"[x for x in r ____ x > 0]", ans:"if", explanation:"if ต่อท้าย for ใน list comprehension ใช้สำหรับกรองข้อมูล" },
+  { id:719, mode:'SURVIVAL', level:7, text:"โจทย์: Deep copy\nคำแนะนำ: เติมชื่อฟังก์ชันจาก module copy ที่ใช้คัดลอกทะลุทะลวง", code:"b = copy.____(a)", ans:"deepcopy", explanation:"deepcopy คัดลอกข้อมูลซ้อนลึก ไม่ผูกกับต้นฉบับ" },
+  { id:720, mode:'SURVIVAL', level:7, text:"โจทย์: Zip หลายลิสต์เข้าด้วยกัน\nคำแนะนำ: เติมฟังก์ชันที่ใช้รวมค่าจากลิสต์ a และ b ตามตำแหน่ง", code:"pairs = list(____(a, b))", ans:"zip", explanation:"zip() รวบรวมค่าจากหลาย iterable ตามตำแหน่ง (index) เดียวกัน" }
 ];
-</script>
-</body>
-</html>

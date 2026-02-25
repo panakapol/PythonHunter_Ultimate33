@@ -16,113 +16,91 @@ const io = new Server(httpServer, {
   pingInterval: 10000
 });
 
-// Serve static frontend files
 app.use(express.static(path.join(__dirname, '../client')));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/index.html'));
-});
+app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../client/index.html')); });
 
-// =============================================
-// IN-MEMORY STORAGE
-// =============================================
-const rooms = new Map();      // roomCode → Room object
-const players = new Map();    // socketId → Player object
+const rooms = new Map();
+const players = new Map();
 
 function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code;
-  do {
-    code = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-  } while (rooms.has(code));
+  do { code = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join(''); } while (rooms.has(code));
   return code;
 }
 
-function shuffleArray(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+// อัลกอริทึมจัดเรียงคำถาม: เรียงตาม Level (ง่ายไปยาก) และสุ่มสลับภายใน Level เดียวกัน
+function sortAndShuffleByLevel(pool) {
+  const grouped = {};
+  pool.forEach(q => {
+    if(!grouped[q.level]) grouped[q.level] = [];
+    grouped[q.level].push(q);
+  });
+  let finalPool = [];
+  Object.keys(grouped).sort((a,b) => a - b).forEach(lvl => {
+    let arr = grouped[lvl];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    finalPool = finalPool.concat(arr);
+  });
+  return finalPool;
 }
 
-// Shared question database
 const QUESTIONS = require('./data/questions');
 
 function getQuestions(mode) {
-  let pool = mode === 'SURVIVAL'
-    ? QUESTIONS.filter(q => q.level >= 6)
-    : QUESTIONS.filter(q => q.mode === mode);
+  let pool = mode === 'SURVIVAL' ? QUESTIONS.filter(q => q.level >= 6) : QUESTIONS.filter(q => q.mode === mode);
   if (!pool.length) pool = QUESTIONS;
-  return shuffleArray(pool);
+  return sortAndShuffleByLevel(pool);
 }
 
-// =============================================
-// SOCKET.IO EVENTS
-// =============================================
 io.on('connection', (socket) => {
   console.log(`[CONNECT] ${socket.id}`);
 
+  // รับค่า timeLimit จาก Modal ที่ส่งมา
   socket.on('create_room', ({ playerName, mode, timeLimit }) => {
     const code = generateRoomCode();
-    const winScoreMap = { 60: 800, 120: 1500, 180: 2000 };
-    const itemsMap    = { 60: 1,   120: 2,    180: 3 };
     const tl = parseInt(timeLimit) || 60;
+    const itemsMap = { 60: 1, 120: 2, 180: 3 };
 
     const room = {
-      code,
-      hostId: socket.id,
-      mode: mode || 'BASICS',
-      timeLimit: tl,
-      winScore: winScoreMap[tl] || 800,
-      defaultItems: itemsMap[tl] || 1,
-      status: 'waiting',
-      players: new Map(),
-      questions: [],
-      questionIndex: 0,
-      startTime: null,
-      timerInterval: null,
-      globalTimer: tl,
+      code, hostId: socket.id, mode: mode || 'BASICS', timeLimit: tl,
+      defaultItems: itemsMap[tl] || 1, status: 'waiting', players: new Map(),
+      questions: [], questionIndex: 0, startTime: null, timerInterval: null, globalTimer: tl,
     };
 
     const player = {
-      socketId: socket.id,
-      name: (playerName || 'PLAYER').toUpperCase().slice(0, 12),
+      socketId: socket.id, name: (playerName || 'PLAYER').toUpperCase().slice(0, 12),
       score: 0, hp: 100, combo: 0,
       hints: room.defaultItems, potions: room.defaultItems, skips: room.defaultItems,
       ready: false, done: false, rank: null,
     };
 
-    room.players.set(socket.id, player);
-    rooms.set(code, room);
-    players.set(socket.id, { roomCode: code, name: player.name });
-
+    room.players.set(socket.id, player); rooms.set(code, room); players.set(socket.id, { roomCode: code, name: player.name });
     socket.join(code);
-    socket.emit('room_created', { roomCode: code, mode: room.mode, timeLimit: room.timeLimit, winScore: room.winScore, isHost: true });
+    socket.emit('room_created', { roomCode: code, mode: room.mode, timeLimit: room.timeLimit, isHost: true });
     socket.emit('room_update', serializeRoom(room));
   });
 
   socket.on('join_room', ({ playerName, roomCode }) => {
     const code = roomCode?.toUpperCase().trim();
     const room = rooms.get(code);
-
     if (!room) return socket.emit('error_msg', 'ไม่พบห้อง — ตรวจสอบรหัสอีกครั้ง');
     if (room.status !== 'waiting') return socket.emit('error_msg', 'เกมเริ่มแล้ว ไม่สามารถเข้าร่วมได้');
     if (room.players.size >= 8) return socket.emit('error_msg', 'ห้องเต็มแล้ว (สูงสุด 8 คน)');
 
     const player = {
-      socketId: socket.id,
-      name: (playerName || 'PLAYER').toUpperCase().slice(0, 12),
+      socketId: socket.id, name: (playerName || 'PLAYER').toUpperCase().slice(0, 12),
       score: 0, hp: 100, combo: 0,
       hints: room.defaultItems, potions: room.defaultItems, skips: room.defaultItems,
       ready: false, done: false, rank: null,
     };
 
-    room.players.set(socket.id, player);
-    players.set(socket.id, { roomCode: code, name: player.name });
-
+    room.players.set(socket.id, player); players.set(socket.id, { roomCode: code, name: player.name });
     socket.join(code);
-    socket.emit('room_joined', { roomCode: code, mode: room.mode, timeLimit: room.timeLimit, winScore: room.winScore, isHost: false });
+    socket.emit('room_joined', { roomCode: code, mode: room.mode, timeLimit: room.timeLimit, isHost: false });
     io.to(code).emit('room_update', serializeRoom(room));
     io.to(code).emit('chat_msg', { system: true, text: `${player.name} เข้าร่วมห้อง!` });
   });
@@ -131,7 +109,6 @@ io.on('connection', (socket) => {
     const info = players.get(socket.id); if (!info) return;
     const room = rooms.get(info.roomCode); if (!room || room.status !== 'waiting') return;
     const player = room.players.get(socket.id); if (!player) return;
-
     player.ready = !player.ready;
     io.to(info.roomCode).emit('room_update', serializeRoom(room));
   });
@@ -141,17 +118,16 @@ io.on('connection', (socket) => {
     const room = rooms.get(info.roomCode); if (!room || room.hostId !== socket.id) return;
     if (room.players.size < 1 || room.status !== 'waiting') return;
 
-    room.status = 'playing';
-    room.questions = getQuestions(room.mode);
+    room.status = 'playing'; room.questions = getQuestions(room.mode);
     room.questionIndex = 0; room.globalTimer = room.timeLimit; room.startTime = Date.now();
 
     room.players.forEach(p => {
-      p.score = 0; p.hp = 100; p.combo = 0; p.done = false; p.rank = null;
+      p.score = 0; p.hp = 100; p.combo = 0; p.done = false; p.rank = null; p.questionIndex = 0;
       p.hints = room.defaultItems; p.potions = room.defaultItems; p.skips = room.defaultItems;
     });
 
     io.to(info.roomCode).emit('game_started', {
-      mode: room.mode, timeLimit: room.timeLimit, winScore: room.winScore,
+      mode: room.mode, timeLimit: room.timeLimit,
       question: serializeQuestion(room.questions[0]), defaultItems: room.defaultItems,
     });
     startRoomTimer(room, info.roomCode);
@@ -176,11 +152,8 @@ io.on('connection', (socket) => {
 
       player.questionIndex = (qIdx + 1) % room.questions.length;
       socket.emit('answer_result', { correct: true, earned, combo: player.combo, score: player.score, timeBonusGiven, nextQuestion: serializeQuestion(room.questions[player.questionIndex]) });
-
-      if (player.score >= room.winScore) {
-        player.done = true; player.rank = countDone(room);
-        socket.emit('player_won', { score: player.score, rank: player.rank });
-      }
+      
+      // เอาเงื่อนไข winScore ออก เกมจะจบเมื่อเวลาหมด หรือ ผู้เล่นเลือดเหลือ 0 เท่านั้น
     } else {
       player.combo = 0; player.hp = Math.max(0, player.hp - 20);
       socket.emit('answer_result', { correct: false, hp: player.hp, combo: 0, score: player.score });
@@ -258,7 +231,7 @@ function getScoreboard(room) {
 }
 function serializeRoom(room) {
   const playerList = []; room.players.forEach(p => { playerList.push({ socketId: p.socketId, name: p.name, score: p.score, hp: p.hp, ready: p.ready, done: p.done, combo: p.combo || 0 }); });
-  return { code: room.code, hostId: room.hostId, mode: room.mode, timeLimit: room.timeLimit, winScore: room.winScore, status: room.status, players: playerList.sort((a, b) => b.score - a.score) };
+  return { code: room.code, hostId: room.hostId, mode: room.mode, timeLimit: room.timeLimit, status: room.status, players: playerList.sort((a, b) => b.score - a.score) };
 }
 function serializeQuestion(q) { if (!q) return null; return { id: q.id, text: q.text, code: q.code, mode: q.mode, level: q.level }; }
 
