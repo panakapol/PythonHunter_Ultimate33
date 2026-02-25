@@ -59,7 +59,6 @@ function getQuestions(mode) {
 io.on('connection', (socket) => {
   console.log(`[CONNECT] ${socket.id}`);
 
-  // รับค่า timeLimit จาก Modal ที่ส่งมา
   socket.on('create_room', ({ playerName, mode, timeLimit }) => {
     const code = generateRoomCode();
     const tl = parseInt(timeLimit) || 60;
@@ -153,7 +152,6 @@ io.on('connection', (socket) => {
       player.questionIndex = (qIdx + 1) % room.questions.length;
       socket.emit('answer_result', { correct: true, earned, combo: player.combo, score: player.score, timeBonusGiven, nextQuestion: serializeQuestion(room.questions[player.questionIndex]) });
       
-      // เอาเงื่อนไข winScore ออก เกมจะจบเมื่อเวลาหมด หรือ ผู้เล่นเลือดเหลือ 0 เท่านั้น
     } else {
       player.combo = 0; player.hp = Math.max(0, player.hp - 20);
       socket.emit('answer_result', { correct: false, hp: player.hp, combo: 0, score: player.score });
@@ -212,27 +210,48 @@ function startRoomTimer(room, roomCode) {
     if (room.globalTimer <= 0) { clearRoomTimer(room); endGame(room, roomCode, 'timeout'); }
   }, 1000);
 }
+
 function clearRoomTimer(room) { if (room.timerInterval) { clearInterval(room.timerInterval); room.timerInterval = null; } }
+
 function countDone(room) { let c = 0; room.players.forEach(p => { if (p.done) c++; }); return c; }
+
 function checkAllDone(room, roomCode) {
   let allDone = true; room.players.forEach(p => { if (!p.done) allDone = false; });
   if (allDone && room.status === 'playing') { clearRoomTimer(room); endGame(room, roomCode, 'all_done'); }
 }
+
 function endGame(room, roomCode, reason) {
   if (room.status === 'ended') return; room.status = 'ended';
   const scoreboard = getScoreboard(room);
   scoreboard.forEach((p, i) => { const rp = room.players.get(p.socketId); if (rp && !rp.done) rp.rank = i + 1; });
   io.to(roomCode).emit('game_ended', { scoreboard, reason });
-  setTimeout(() => { clearRoomTimer(room); rooms.delete(roomCode); }, 5 * 60 * 1000);
+  
+  // FIX: สั่งรีเซ็ตสถานะห้องกลับไปหน้า Lobby รอเล่นตาต่อไป (หลีกเลี่ยงบั๊กกด Play Again ค้าง)
+  setTimeout(() => {
+    if (rooms.has(roomCode)) {
+      room.status = 'waiting';
+      room.players.forEach(p => { p.ready = false; p.done = false; });
+      io.to(roomCode).emit('room_update', serializeRoom(room));
+    }
+  }, 2000); 
+
+  setTimeout(() => { 
+    if(rooms.has(roomCode) && rooms.get(roomCode).status === 'waiting' && rooms.get(roomCode).players.size === 0) {
+      clearRoomTimer(room); rooms.delete(roomCode); 
+    }
+  }, 15 * 60 * 1000); // เคลียร์ห้องทิ้งถ้าไม่มีคนอยู่เลยใน 15 นาที
 }
+
 function getScoreboard(room) {
   const arr = []; room.players.forEach(p => { arr.push({ socketId: p.socketId, name: p.name, score: p.score, hp: p.hp, done: p.done, rank: p.rank, combo: p.combo || 0 }); });
   return arr.sort((a, b) => b.score - a.score);
 }
+
 function serializeRoom(room) {
   const playerList = []; room.players.forEach(p => { playerList.push({ socketId: p.socketId, name: p.name, score: p.score, hp: p.hp, ready: p.ready, done: p.done, combo: p.combo || 0 }); });
   return { code: room.code, hostId: room.hostId, mode: room.mode, timeLimit: room.timeLimit, status: room.status, players: playerList.sort((a, b) => b.score - a.score) };
 }
+
 function serializeQuestion(q) { if (!q) return null; return { id: q.id, text: q.text, code: q.code, mode: q.mode, level: q.level }; }
 
 const PORT = process.env.PORT || 10000;
