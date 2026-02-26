@@ -22,20 +22,6 @@
 <div id="particles"></div>
 <button id="snd-btn">🔊 ON</button>
 
-<button id="feedback-btn" onclick="openFeedback()">💬 FEEDBACK</button>
-<div id="feedback-modal" class="f-modal">
-  <div class="f-content">
-    <h3 class="f-title">SYSTEM FEEDBACK</h3>
-    <p class="f-sub">พบปัญหา / มีข้อเสนอแนะ แจ้ง Dev ได้เลย!</p>
-    <input type="text" id="fb-name" class="inp f-inp" placeholder="ชื่อ หรือ ข้อมูลติดต่อกลับ (ไม่บังคับ)" maxlength="50">
-    <textarea id="fb-msg" class="inp f-area" placeholder="พิมพ์รายละเอียดปัญหา หรือสิ่งที่อยากให้เพิ่ม..." rows="5"></textarea>
-    <div class="row" style="margin-top: 10px;">
-      <button class="btn btn-blue" onclick="submitFeedback()" id="fb-submit-btn">✓ SEND DATA</button>
-      <button class="btn" style="border-color: var(--border); color: var(--dim);" onclick="closeFeedback()">✕ CANCEL</button>
-    </div>
-  </div>
-</div>
-
 <div id="app">
 
 <section id="s-menu" class="scene on">
@@ -857,43 +843,7 @@ function sendChat(ctx){ SFX.click(); const inp=document.getElementById(`chat-inp
 function handleFire() { if (typeof MP !== 'undefined' && MP.active && G.isPlaying) { MP.submit(); } else { G.submit(); } }
 function handleItem(item) { if (typeof MP !== 'undefined' && MP.active && G.isPlaying) { MP.useItem(item); } else { G.useItem(item); } }
 
-/* ========================================
-   FEEDBACK SYSTEM JS
-======================================== */
-function openFeedback() { SFX.click(); document.getElementById('feedback-modal').classList.add('show'); document.getElementById('fb-msg').focus(); }
-function closeFeedback() { SFX.click(); document.getElementById('feedback-modal').classList.remove('show'); document.getElementById('fb-msg').value = ''; document.getElementById('fb-name').value = ''; }
-async function submitFeedback() {
-  SFX.click();
-  const name = document.getElementById('fb-name').value.trim();
-  const msg = document.getElementById('fb-msg').value.trim();
-  const btn = document.getElementById('fb-submit-btn');
-
-  if (!msg) { toast('กรุณาพิมพ์รายละเอียดก่อนกดส่ง!', 'r'); return; }
-
-  btn.textContent = 'SENDING...';
-  btn.disabled = true;
-
-  try {
-    const res = await fetch('/api/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name, message: msg })
-    });
-    if (res.ok) {
-      toast('ส่งข้อมูลให้ผู้พัฒนาสำเร็จ! ขอบคุณครับ', 'g');
-      closeFeedback();
-    } else {
-      toast('เกิดข้อผิดพลาด ลองใหม่อีกครั้ง', 'r');
-    }
-  } catch(e) {
-    toast('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'r');
-  } finally {
-    btn.textContent = '✓ SEND DATA';
-    btn.disabled = false;
-  }
-}
-
-const SOLO_QUESTIONS=[
+const SOLO_QUESTIONS = [
   { id:101, mode:'BASICS', level:1, text:"โจทย์: คำสั่งแสดงผลข้อความออกหน้าจอ\nคำแนะนำ: เติมชื่อฟังก์ชันที่ใช้แสดงข้อความหรือค่าตัวแปรออกทางหน้าจอ", code:"____('Hello World')", ans:"print", explanation:"print() ใช้แสดงผลข้อมูลออกหน้าจอ" },
   { id:102, mode:'BASICS', level:1, text:"โจทย์: รับค่าจากผู้ใช้งาน (Keyboard)\nคำแนะนำ: เติมฟังก์ชันที่ใช้รับค่าจากคีย์บอร์ด แล้วเก็บไว้ในตัวแปร", code:"name = ____('Enter Name: ')", ans:"input", explanation:"input() รับค่าจากผู้ใช้ และค่าที่ได้จะเป็น string เสมอ" },
   { id:103, mode:'BASICS', level:1, text:"โจทย์: แปลงข้อความให้เป็นจำนวนเต็ม\nคำแนะนำ: เติมฟังก์ชันที่ใช้แปลง string เป็นจำนวนเต็ม", code:"score = ____('50')", ans:"int", explanation:"int() ใช้แปลงข้อมูลเป็นจำนวนเต็ม" },
@@ -914,7 +864,6 @@ const SOLO_QUESTIONS=[
   { id:118, mode:'BASICS', level:1, text:"โจทย์: ยกกำลัง\nคำแนะนำ: เติมเครื่องหมายยกกำลัง", code:"2 ____ 3", ans:"**", explanation:"** คือยกกำลัง" },
   { id:119, mode:'BASICS', level:1, text:"โจทย์: แปลงเป็นทศนิยม\nคำแนะนำ: เติมฟังก์ชันที่ใช้แปลง int เป็น float", code:"price = ____(10)", ans:"float", explanation:"float() แปลงเป็นทศนิยม" },
   { id:120, mode:'BASICS', level:1, text:"โจทย์: รับค่าตัวเลขจากผู้ใช้แล้วแปลงทันที\nคำแนะนำ: เติมฟังก์ชันที่ใช้แปลงค่าที่รับจาก input ให้เป็นจำนวนเต็ม", code:"age = ____(input('Age: '))", ans:"int", explanation:"ต้องแปลงก่อนใช้งานทางคณิตศาสตร์" },
-
   { id:221, mode:'LOGIC', level:2, text:"โจทย์: คำสั่งตรวจสอบเงื่อนไข (ถ้า...)\nคำแนะนำ: เติมคำสั่งที่ใช้เริ่มต้นการเขียนเงื่อนไข หากเป็นจริงจึงจะทำงาน", code:"____ x > 10:", ans:"if", explanation:"if ใช้สร้างเงื่อนไข" },
   { id:222, mode:'LOGIC', level:2, text:"โจทย์: เงื่อนไขทางเลือกเพิ่มเติม\nคำแนะนำ: เติมคำสั่งที่ใช้ตรวจสอบเงื่อนไขอื่น เมื่อ if ก่อนหน้าไม่เป็นจริง", code:"____ x > 5:", ans:"elif", explanation:"elif จะถูกตรวจสอบเมื่อ if ก่อนหน้าเป็น False" },
   { id:223, mode:'LOGIC', level:2, text:"โจทย์: กรณีสุดท้าย\nคำแนะนำ: เติมคำสั่งที่ใช้ทำงานเมื่อไม่มีเงื่อนไขใดเป็นจริงเลย", code:"____:", ans:"else", explanation:"else ทำงานเมื่อทุก if และ elif ก่อนหน้าเป็น False" },
@@ -935,7 +884,6 @@ const SOLO_QUESTIONS=[
   { id:238, mode:'LOGIC', level:2, text:"โจทย์: ตรวจสอบว่าไม่ใช่ None\nคำแนะนำ: เติมคำที่ใช้เปรียบเทียบว่า object ไม่ใช่ None", code:"if x ____ None:", ans:"is not", explanation:"is not ใช้ตรวจสอบว่าไม่ใช่ None" },
   { id:239, mode:'LOGIC', level:2, text:"โจทย์: ตรวจสอบความยาวมากกว่า 0\nคำแนะนำ: เติมเครื่องหมายที่ใช้เปรียบเทียบความยาวว่ามากกว่า 0", code:"if len(name) ____ 0:", ans:">", explanation:"> ใช้เปรียบเทียบค่ามากกว่า" },
   { id:240, mode:'LOGIC', level:2, text:"โจทย์: เงื่อนไขซ้อน (Nested)\nคำแนะนำ: เติมคำศัพท์ที่ใช้เรียกโครงสร้าง if ที่อยู่ภายใน if อีกที", code:"____ condition", ans:"nested", explanation:"nested condition คือเงื่อนไขซ้อนกันหลายชั้น" },
-
   { id:341, mode:'LOOPS', level:3, text:"โจทย์: วนซ้ำแบบรู้จำนวนรอบ\nคำแนะนำ: เติมคำสั่งที่ใช้วนซ้ำตามจำนวนรอบที่กำหนดไว้แน่นอน", code:"____ i in range(10):", ans:"for", explanation:"for ใช้วนซ้ำตามจำนวนหรือข้อมูลในลำดับ" },
   { id:342, mode:'LOOPS', level:3, text:"โจทย์: สร้างชุดตัวเลขตั้งแต่ 0 ถึง 4\nคำแนะนำ: เติมฟังก์ชันที่ใช้สร้างลำดับตัวเลขตามจำนวนที่กำหนด", code:"for i in ____(5):", ans:"range", explanation:"range(5) จะได้ตัวเลข 0 ถึง 4" },
   { id:343, mode:'LOOPS', level:3, text:"โจทย์: วนซ้ำตราบเท่าที่เงื่อนไขเป็นจริง\nคำแนะนำ: เติมคำสั่งที่ใช้วนซ้ำแบบไม่รู้จำนวนรอบล่วงหน้า แต่ขึ้นกับเงื่อนไข", code:"____ hp > 0:", ans:"while", explanation:"while จะทำงานซ้ำตราบใดที่เงื่อนไขยังเป็น True" },
@@ -955,7 +903,6 @@ const SOLO_QUESTIONS=[
   { id:357, mode:'LOOPS', level:3, text:"โจทย์: ตรวจสอบเลขคู่\nคำแนะนำ: เติมเครื่องหมายเปรียบเทียบที่ใช้ตรวจสอบว่าหาร 2 ลงตัว", code:"if i % 2 ____ 0:", ans:"==", explanation:"ถ้าเศษเป็น 0 แสดงว่าเป็นเลขคู่" },
   { id:358, mode:'LOOPS', level:3, text:"โจทย์: break เมื่อเจอค่าที่ต้องการ\nคำแนะนำ: เติมคำสั่งที่ใช้หยุดลูปเมื่อ i เท่ากับ 5", code:"if i==5: ____", ans:"break", explanation:"break ออกจากลูปทันที" },
   { id:359, mode:'LOOPS', level:3, text:"โจทย์: สร้าง list จากลูปแบบย่อ\nคำแนะนำ: เติมคำที่ใช้เริ่มต้นการเขียน List Comprehension", code:"[x ____ x in range(5)]", ans:"for", explanation:"for ใช้ใน list comprehension" },
-
   { id:461, mode:'DATA', level:4, text:"โจทย์: สร้างลิสต์เก็บข้อมูลหลายค่า\nคำแนะนำ: เติมสัญลักษณ์ที่ใช้สร้าง list เพื่อเก็บตัวเลข", code:"nums = ____ 1, 2, 3 ____", ans:"[]", explanation:"วงเล็บเหลี่ยม [] ใช้สร้าง list" },
   { id:462, mode:'DATA', level:4, text:"โจทย์: เข้าถึงข้อมูลตัวแรกของลิสต์\nคำแนะนำ: เติม index ที่ใช้ดึงสมาชิกตัวแรกของ list", code:"print(nums[____])", ans:"0", explanation:"index เริ่มที่ 0 ดังนั้นตัวแรกคือ index 0" },
   { id:463, mode:'DATA', level:4, text:"โจทย์: เพิ่มข้อมูลเข้า list\nคำแนะนำ: เติม method ที่ใช้เพิ่มค่า 40 เข้าไปท้าย list", code:"nums.____(40)", ans:"append", explanation:"append ใช้เพิ่มข้อมูลต่อท้าย list" },
@@ -974,7 +921,6 @@ const SOLO_QUESTIONS=[
   { id:476, mode:'DATA', level:4, text:"โจทย์: สร้าง set\nคำแนะนำ: เติมฟังก์ชันที่ใช้สร้าง set จาก list", code:"s = ____(nums)", ans:"set", explanation:"set ใช้เก็บข้อมูลไม่ซ้ำ" },
   { id:477, mode:'DATA', level:4, text:"โจทย์: เพิ่มข้อมูลใน set\nคำแนะนำ: เติม method ที่ใช้เพิ่มข้อมูลเข้า set", code:"s.____(3)", ans:"add", explanation:"add ใช้เพิ่มข้อมูลใน set" },
   { id:478, mode:'DATA', level:4, text:"โจทย์: รวม list สองชุด\nคำแนะนำ: เติม operator ที่ใช้รวม list", code:"c = a ____ b", ans:"+", explanation:"+ ใช้รวม list สองชุดเข้าด้วยกัน" },
-
   { id:581, mode:'FUNC', level:5, text:"โจทย์: สร้างฟังก์ชันใหม่\nคำแนะนำ: เติม keyword ที่ใช้ประกาศฟังก์ชันใน Python", code:"____ greet():", ans:"def", explanation:"def ใช้สำหรับประกาศฟังก์ชัน" },
   { id:582, mode:'FUNC', level:5, text:"โจทย์: ส่งค่ากลับจากฟังก์ชัน\nคำแนะนำ: เติม keyword ที่ใช้ส่งค่ากลับออกจากฟังก์ชัน", code:"____ a + b", ans:"return", explanation:"return ใช้ส่งค่ากลับจากฟังก์ชัน" },
   { id:583, mode:'FUNC', level:5, text:"โจทย์: รับพารามิเตอร์\nคำแนะนำ: เติมชื่อตัวแปรพารามิเตอร์ในฟังก์ชันให้ตรงกับที่ Print", code:"def greet(____):\n  print('Hi', name)", ans:"name", explanation:"name คือพารามิเตอร์ที่รับค่าจากภายนอก" },
@@ -989,8 +935,7 @@ const SOLO_QUESTIONS=[
   { id:592, mode:'FUNC', level:5, text:"โจทย์: ตรวจสอบเอกสารอธิบายฟังก์ชัน\nคำแนะนำ: เติมฟังก์ชันที่ใช้ดู documentation ของโค้ด", code:"print(____(len))", ans:"help", explanation:"help() ใช้ดูคำอธิบายฟังก์ชัน" },
   { id:593, mode:'FUNC', level:5, text:"โจทย์: ใช้ global\nคำแนะนำ: เติม keyword ที่ใช้ประกาศตัวแปร global ภายในฟังก์ชัน", code:"____ x\nx = 5", ans:"global", explanation:"global ทำให้แก้ค่าตัวแปรระดับภายนอกได้" },
   { id:594, mode:'FUNC', level:5, text:"โจทย์: Import ฟังก์ชันเฉพาะ\nคำแนะนำ: เติม keyword ที่ใช้เลือก import เฉพาะบางฟังก์ชันจากโมดูล", code:"from math ____ sqrt", ans:"import", explanation:"from ... import ใช้เรียกเฉพาะฟังก์ชันที่ต้องการ" },
-
-  { id:601, mode:'OOP', level:5, text:"โจทย์: สร้างคลาส\nคำแนะนำ: เติม keyword ที่ใช้สร้างคลาส (แม่พิมพ์) ใน Python", code:"____ Person:\n  pass", ans:"class", explanation:"class สร้าง blueprint" },
+  { id:601, mode:'OOP', level:5, text:"โจทย์: สร้างคลาส\nคำแนะนำ: เติม keyword ที่ใช้สร้างคลาส (แม่พิมพ์) ใน Python", code:"____ Person:\n  pass", ans:"class", explanation:"class ใช้สำหรับสร้างแม่แบบของวัตถุ" },
   { id:602, mode:'OOP', level:5, text:"โจทย์: สร้าง constructor\nคำแนะนำ: เติมชื่อเมธอดพิเศษที่ทำงานอัตโนมัติเมื่อสร้าง object", code:"def ______(self):", ans:"__init__", explanation:"__init__ คือ constructor จะทำงานทันทีเมื่อสร้าง object" },
   { id:603, mode:'OOP', level:5, text:"โจทย์: พารามิเตอร์ self\nคำแนะนำ: เติมพารามิเตอร์ตัวแรกของเมธอดในคลาส", code:"def greet(____):", ans:"self", explanation:"self ใช้อ้างอิง object ปัจจุบัน" },
   { id:604, mode:'OOP', level:5, text:"โจทย์: สร้าง object จากคลาส\nคำแนะนำ: เติมชื่อคลาสเพื่อสร้าง object ให้ตัวแปร p", code:"p = ____()", ans:"Person", explanation:"ใช้ชื่อคลาสตามด้วย () เพื่อสร้าง object" },
@@ -1002,7 +947,6 @@ const SOLO_QUESTIONS=[
   { id:610, mode:'OOP', level:5, text:"โจทย์: เมธอด static\nคำแนะนำ: เติม decorator สำหรับ static method", code:"@____\ndef info():", ans:"staticmethod", explanation:"@staticmethod ไม่ต้องใช้ self หรือ cls" },
   { id:611, mode:'OOP', level:5, text:"โจทย์: สร้าง property\nคำแนะนำ: เติม decorator ที่ใช้สร้าง property ให้เรียกเมธอดเหมือนตัวแปรได้", code:"@____\ndef name(self):", ans:"property", explanation:"@property ทำให้เรียกเมธอดเหมือน attribute" },
   { id:612, mode:'OOP', level:5, text:"โจทย์: ตั้งค่า property (Setter)\nคำแนะนำ: เติม decorator ที่ใช้ตั้งค่า property name", code:"@name.____\ndef name(self, value):", ans:"setter", explanation:"@name.setter ใช้กำหนดค่าของ property" },
-
   { id:701, mode:'SURVIVAL', level:6, text:"โจทย์: ตรวจสอบเลขคู่และมากกว่า 10\nคำแนะนำ: เติมตัวดำเนินการตรรกะเพื่อให้เงื่อนไขครบทั้งสองอย่าง", code:"if x % 2 == 0 ____ x > 10:", ans:"and", explanation:"and ใช้เชื่อมเงื่อนไขทั้งสองให้เป็นจริงพร้อมกัน" },
   { id:702, mode:'SURVIVAL', level:6, text:"โจทย์: ตรวจสอบว่าไม่ใช่ค่าว่าง\nคำแนะนำ: เติมคำสั่งปฏิเสธค่า Boolean", code:"if ____ name:", ans:"not", explanation:"not ใช้กลับค่าความจริง เช่น not '' จะได้ True" },
   { id:703, mode:'SURVIVAL', level:6, text:"โจทย์: วนซ้ำแบบลดค่าถอยหลัง\nคำแนะนำ: เติมค่าขั้นตอน (step) เพื่อให้นับถอยหลังทีละ 2", code:"for i in range(10, 0, ____):", ans:"-2", explanation:"ค่า step ติดลบทำให้ลดค่าลง" },
@@ -1013,7 +957,6 @@ const SOLO_QUESTIONS=[
   { id:708, mode:'SURVIVAL', level:6, text:"โจทย์: ตรวจสอบค่าในช่วง\nคำแนะนำ: เติมตัวดำเนินการเชื่อมเงื่อนไขให้ถูกต้อง", code:"if x > 0 ____ x < 100:", ans:"and", explanation:"ต้องใช้ and เชื่อมสองเงื่อนไข (หรือใช้ 0 < x < 100)" },
   { id:709, mode:'SURVIVAL', level:6, text:"โจทย์: ฟังก์ชันคืนค่าเงื่อนไข\nคำแนะนำ: เติมคำสั่งส่งค่า Boolean กลับ", code:"____ x % 2 == 0", ans:"return", explanation:"return ใช้ส่งค่ากลับ" },
   { id:710, mode:'SURVIVAL', level:6, text:"โจทย์: ฟังก์ชันแบบไม่คืนค่า (โชว์อย่างเดียว)\nคำแนะนำ: เติมคำสั่งแสดงผลออกหน้าจอ", code:"____('Hello')", ans:"print", explanation:"print แสดงผลโดยไม่คืนค่า (return None)" },
-  
   { id:711, mode:'SURVIVAL', level:7, text:"โจทย์: ตรวจสอบค่า None แบบปลอดภัย\nคำแนะนำ: เติมตัวดำเนินการที่ใช้เปรียบเทียบ None อย่างถูกต้อง", code:"if x ____ None:", ans:"is", explanation:"การเปรียบเทียบ None ควรใช้ is ไม่ใช้ ==" },
   { id:712, mode:'SURVIVAL', level:7, text:"โจทย์: เงื่อนไขแบบ XOR\nคำแนะนำ: เติมตัวดำเนินการที่ทำให้เงื่อนไขเป็นจริงเมื่อมีเพียง 1 เงื่อนไขที่จริง", code:"if a ____ b:", ans:"^", explanation:"^ คือ XOR สำหรับ Boolean/Bitwise" },
   { id:713, mode:'SURVIVAL', level:7, text:"โจทย์: ตรวจสอบว่าค่าไม่อยู่ในช่วง\nคำแนะนำ: เติมตัวดำเนินการตรรกะในวงเล็บ", code:"if not (0 ____ x <= 100):", ans:"<=", explanation:"ใช้ <= เพื่อสร้างช่วง" },

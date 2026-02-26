@@ -1,13 +1,12 @@
 // =============================================
 // PYTHON HUNTER v4 — SERVER.JS
-// Node.js + Socket.IO Multiplayer Backend + Discord Feedback
+// Node.js + Socket.IO Multiplayer Backend
 // =============================================
 
 const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
-const https = require('https'); // ใช้ https ดั้งเดิมของ Node.js (ผ่าน Render แน่นอน 100%)
 
 const app = express();
 const httpServer = createServer(app);
@@ -17,57 +16,9 @@ const io = new Server(httpServer, {
   pingInterval: 10000
 });
 
-app.use(express.json());
-
-// =============================================
-// FEEDBACK SYSTEM (DISCORD WEBHOOK)
-// =============================================
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1476523032724897934/fTs7BFEjVQwi2A94u41auQLspkrG5IcsWZvT0fKZh1S0F9Oa1BrMmA_ryV_NIC8jJo_-";
-
-app.post('/api/feedback', (req, res) => {
-  const { name, message } = req.body;
-  if (!message) return res.status(400).json({ error: 'Message required' });
-
-  const payload = JSON.stringify({
-    content: `🚨 **NEW FEEDBACK: PYTHON HUNTER** 🚨\n**From:** ${name || 'Anonymous'}\n**Message:**\n>>> ${message}`
-  });
-
-  const url = new URL(DISCORD_WEBHOOK_URL);
-  const options = {
-    hostname: url.hostname,
-    path: url.pathname,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(payload)
-    }
-  };
-
-  const request = https.request(options, (response) => {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      res.json({ success: true });
-    } else {
-      console.error('Discord API Error:', response.statusCode);
-      res.status(500).json({ error: 'Discord API Error' });
-    }
-  });
-
-  request.on('error', (err) => {
-    console.error('Webhook Request Error:', err);
-    res.status(500).json({ error: 'Failed to send' });
-  });
-
-  request.write(payload);
-  request.end();
-});
-
-// Serve static frontend files
 app.use(express.static(path.join(__dirname, '../client')));
 app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../client/index.html')); });
 
-// =============================================
-// IN-MEMORY STORAGE & GAME LOGIC
-// =============================================
 const rooms = new Map();
 const players = new Map();
 
