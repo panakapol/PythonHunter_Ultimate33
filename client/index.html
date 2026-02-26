@@ -1073,6 +1073,7 @@ async function submitFeedback() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: name, message: msg })
     });
+    
     if (res.ok) {
       toast('ส่งข้อมูลให้ผู้พัฒนาสำเร็จ! ขอบคุณครับ', 'g');
       closeFeedback();
