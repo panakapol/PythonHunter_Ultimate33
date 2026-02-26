@@ -3,6 +3,7 @@
 // Node.js + Socket.IO Multiplayer Backend
 // =============================================
 require('dotenv').config();
+console.log("ENV TEST:", process.env.DISCORD_WEBHOOK_URL);
 const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
