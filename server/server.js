@@ -1,6 +1,6 @@
 // =============================================
 // PYTHON HUNTER v4 — SERVER.JS
-// Node.js + Socket.IO Multiplayer Backend
+// Node.js + Socket.IO Multiplayer Backend + Discord Feedback
 // =============================================
 
 const express = require('express');
@@ -16,9 +16,43 @@ const io = new Server(httpServer, {
   pingInterval: 10000
 });
 
+app.use(express.json()); // ให้เซิร์ฟเวอร์อ่านข้อมูลแบบ JSON ได้
+
+// =============================================
+// FEEDBACK SYSTEM (DISCORD WEBHOOK)
+// =============================================
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1476523032724897934/fTs7BFEjVQwi2A94u41auQLspkrG5IcsWZvT0fKZh1S0F9Oa1BrMmA_ryV_NIC8jJo_-";
+
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const { name, message } = req.body;
+    if (!message) return res.status(400).json({ error: 'Message required' });
+
+    const payload = {
+      content: `🚨 **NEW FEEDBACK: PYTHON HUNTER** 🚨\n**From:** ${name || 'Anonymous'}\n**Message:**\n>>> ${message}`
+    };
+
+    // ส่งข้อความเข้า Discord
+    await fetch(DISCORD_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Feedback error:', err);
+    res.status(500).json({ error: 'Failed to send' });
+  }
+});
+
+// Serve static frontend files
 app.use(express.static(path.join(__dirname, '../client')));
 app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../client/index.html')); });
 
+// =============================================
+// IN-MEMORY STORAGE & GAME LOGIC
+// =============================================
 const rooms = new Map();
 const players = new Map();
 
@@ -29,7 +63,6 @@ function generateRoomCode() {
   return code;
 }
 
-// อัลกอริทึมจัดเรียงคำถาม: เรียงตาม Level (ง่ายไปยาก) และสุ่มสลับภายใน Level เดียวกัน
 function sortAndShuffleByLevel(pool) {
   const grouped = {};
   pool.forEach(q => {
@@ -226,7 +259,6 @@ function endGame(room, roomCode, reason) {
   scoreboard.forEach((p, i) => { const rp = room.players.get(p.socketId); if (rp && !rp.done) rp.rank = i + 1; });
   io.to(roomCode).emit('game_ended', { scoreboard, reason });
   
-  // FIX: สั่งรีเซ็ตสถานะห้องกลับไปหน้า Lobby รอเล่นตาต่อไป (หลีกเลี่ยงบั๊กกด Play Again ค้าง)
   setTimeout(() => {
     if (rooms.has(roomCode)) {
       room.status = 'waiting';
@@ -239,7 +271,7 @@ function endGame(room, roomCode, reason) {
     if(rooms.has(roomCode) && rooms.get(roomCode).status === 'waiting' && rooms.get(roomCode).players.size === 0) {
       clearRoomTimer(room); rooms.delete(roomCode); 
     }
-  }, 15 * 60 * 1000); // เคลียร์ห้องทิ้งถ้าไม่มีคนอยู่เลยใน 15 นาที
+  }, 15 * 60 * 1000); 
 }
 
 function getScoreboard(room) {

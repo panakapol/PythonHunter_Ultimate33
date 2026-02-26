@@ -413,14 +413,14 @@ input{-webkit-tap-highlight-color:transparent;}
 }
 
 /* ========================================
-   CODE AREA (แก้ไขให้รองรับขึ้นบรรทัดใหม่)
+   CODE AREA
 ======================================== */
 .code-box{
   width:100%;background:rgba(0,255,65,.025);
   border:1px solid var(--border);
   border-left:3px solid var(--g);
   padding:12px 14px;margin-bottom:8px;
-  position:relative;min-height:110px;
+  position:relative;min-height:96px;
   flex-shrink:0;
 }
 .code-box::before{
@@ -442,15 +442,12 @@ input{-webkit-tap-highlight-color:transparent;}
 .q-txt{
   font-family:var(--font3);color:rgba(255,255,255,.65);
   font-size:clamp(.78rem,2vw,.9rem);
-  font-style:italic;margin-bottom:8px;
-  white-space: pre-wrap; /* สำคัญ: ทำให้ขึ้นบรรทัดใหม่ได้ตามโจทย์ยาวๆ */
-  line-height:1.6;
+  font-style:italic;margin-bottom:8px;line-height:1.4;
 }
 .code-line{
   font-family:var(--font2);
   font-size:clamp(1rem,3.5vw,1.5rem);
   color:#e8ffe8;line-height:1.7;word-break:break-all;
-  white-space: pre-wrap; /* สำหรับโค้ดที่ยาวหลายบรรทัด */
 }
 .typing::after{
   content:'▌';animation:blink .8s step-end infinite;color:var(--g);
@@ -712,4 +709,42 @@ input{-webkit-tap-highlight-color:transparent;}
   .hbox{padding:5px 7px;}
   .hval{font-size:.9rem;}
   .pup .pi{display:none;}
+}
+
+/* ========================================
+   FEEDBACK UI
+======================================== */
+#feedback-btn {
+  position: fixed; bottom: 12px; right: 12px; z-index: 900;
+  background: var(--glass); border: 1px solid rgba(0, 229, 255, 0.4);
+  color: var(--b); padding: 8px 14px; font-family: var(--font2);
+  font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase;
+  transition: 0.2s ease; cursor: pointer; box-shadow: var(--sb);
+  backdrop-filter: blur(4px);
+}
+#feedback-btn:hover { background: rgba(0, 229, 255, 0.15); transform: translateY(-2px); }
+#feedback-btn:active { transform: scale(0.95); }
+
+.f-modal {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
+  display: flex; justify-content: center; align-items: center;
+  opacity: 0; pointer-events: none; transition: 0.3s ease; padding: 12px;
+}
+.f-modal.show { opacity: 1; pointer-events: auto; }
+.f-content {
+  background: var(--glass); border: 1px solid var(--b);
+  padding: 24px; max-width: 440px; width: 100%;
+  box-shadow: 0 0 40px rgba(0, 229, 255, 0.15);
+  transform: translateY(20px); transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.f-modal.show .f-content { transform: translateY(0); }
+.f-title { font-family: var(--font1); color: var(--b); letter-spacing: 3px; font-size: 1.2rem; text-align: center; margin-bottom: 6px; text-shadow: var(--sb); }
+.f-sub { font-family: var(--font3); color: var(--dim); font-size: 0.8rem; text-align: center; margin-bottom: 18px; letter-spacing: 1px; }
+.f-inp { margin-bottom: 12px; border-color: rgba(0, 229, 255, 0.3); color: var(--b); text-transform: none; text-align: left; width: 100%;}
+.f-inp:focus { border-color: var(--b); box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.05); }
+.f-area { resize: none; font-size: 0.9rem; padding: 12px; border-bottom: 1px solid rgba(0, 229, 255, 0.3); }
+
+@media(max-width: 600px) {
+  #feedback-btn { bottom: max(12px, env(safe-area-inset-bottom)); right: 12px; font-size: 0.65rem; padding: 6px 10px; }
 }
