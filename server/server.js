@@ -2,7 +2,7 @@
 // PYTHON HUNTER v4 — SERVER.JS
 // Node.js + Socket.IO Multiplayer Backend
 // =============================================
-
+require('dotenv').config();
 const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
@@ -195,7 +195,7 @@ io.on('connection', (socket) => {
 
 socket.on('send_feedback', async ({ message }) => {
   try {
-    if (!process.env.DISCORD_WEBHOOK_URL) return;
+    console.log("WEBHOOK:", process.env.DISCORD_WEBHOOK_URL);
 
     const info = players.get(socket.id);
     const name = info ? info.name : "UNKNOWN";
