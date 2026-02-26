@@ -7,7 +7,6 @@ const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
-const https = require('https'); // เพิ่มไลบรารีพื้นฐานเพื่อให้ส่ง Discord ได้ชัวร์ๆ
 
 const app = express();
 const httpServer = createServer(app);
@@ -17,49 +16,39 @@ const io = new Server(httpServer, {
   pingInterval: 10000
 });
 
-app.use(express.json()); // ให้เซิร์ฟเวอร์อ่านข้อมูลแบบ JSON ได้
+app.use(express.json());
 
 // =============================================
 // FEEDBACK SYSTEM (DISCORD WEBHOOK)
 // =============================================
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1476523032724897934/fTs7BFEjVQwi2A94u41auQLspkrG5IcsWZvT0fKZh1S0F9Oa1BrMmA_ryV_NIC8jJo_-";
 
-app.post('/api/feedback', (req, res) => {
-  const { name, message } = req.body;
-  if (!message) return res.status(400).json({ error: 'Message required' });
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const { name, message } = req.body;
+    if (!message) return res.status(400).json({ error: 'Message required' });
 
-  const payload = JSON.stringify({
-    content: `🚨 **NEW FEEDBACK: PYTHON HUNTER** 🚨\n**From:** ${name || 'Anonymous'}\n**Message:**\n>>> ${message}`
-  });
+    const payload = {
+      content: `🚨 **NEW FEEDBACK: PYTHON HUNTER** 🚨\n**From:** ${name || 'Anonymous'}\n**Message:**\n>>> ${message}`
+    };
 
-  const url = new URL(DISCORD_WEBHOOK_URL);
-  const options = {
-    hostname: url.hostname,
-    path: url.pathname,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(payload)
-    }
-  };
+    // ใช้ fetch มาตรฐานของ Node.js (รองรับบน Render.com 100%)
+    const response = await fetch(DISCORD_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
 
-  // ใช้ https.request แทน fetch เพื่อไม่ให้ Error บน Render
-  const request = https.request(options, (response) => {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
+    if (response.ok) {
       res.json({ success: true });
     } else {
-      console.error('Discord API Error:', response.statusCode);
-      res.status(500).json({ error: 'Discord API Error' });
+      console.error('Discord API Error:', response.status);
+      res.status(500).json({ error: 'Discord rejected' });
     }
-  });
-
-  request.on('error', (err) => {
-    console.error('Webhook Request Error:', err);
+  } catch (err) {
+    console.error('Webhook Error:', err);
     res.status(500).json({ error: 'Failed to send' });
-  });
-
-  request.write(payload);
-  request.end();
+  }
 });
 
 // Serve static frontend files
