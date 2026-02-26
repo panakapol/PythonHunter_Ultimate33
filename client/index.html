@@ -248,6 +248,7 @@
 <section id="s-manual" class="scene scroll-scene">
 <div class="mc" style="padding:20px 0 40px;width:100%;">
   <h2 class="title" data-t="PYTHON MANUAL" style="text-align:center;margin-bottom:14px;font-size:clamp(1.4rem,5vw,2rem);">PYTHON MANUAL</h2>
+  
   <div class="panel" style="margin-bottom:12px;">
     <div style="background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.2);padding:14px;margin-bottom:18px;">
       <div style="font-family:var(--font1);font-size:.8rem;color:var(--b);letter-spacing:2px;margin-bottom:10px;border-bottom:1px solid rgba(0,229,255,.15);padding-bottom:6px;">🔰 กฎกติกาการเล่น (HOW TO PLAY)</div>
@@ -257,9 +258,107 @@
         <li>▸ <strong>TIME BONUS:</strong> ตอบถูกต่อเนื่อง 3 ข้อ → <span style="color:var(--y);">+10 วินาที</span></li>
         <li>▸ <strong>เงื่อนไขการชนะ (WIN):</strong> 60s = 800 | 120s = 1,500 | 180s = 2,000 คะแนน</li>
         <li>▸ <strong>ไอเทมตัวช่วย:</strong> 💊 HP+30% | 💡 HINT ใบ้ตัวแรก -50pts | ⏩ SKIP ข้ามข้อ -100pts</li>
+        <li>▸ <strong>Survival Mode:</strong> โหมดโหดหิน สุ่มเฉพาะโจทย์ระดับ <span style="color:var(--r);">ข้อยากพิเศษ</span> (Level 6-7) เท่านั้น</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">1. BASICS (พื้นฐานและตัวแปร)</h3>
+      <p style="font-family:var(--font3);font-size:.82rem;color:rgba(255,255,255,.65);margin-bottom:8px;line-height:1.6;">
+        Python เป็นภาษาที่เน้นความอ่านง่าย การประกาศตัวแปรทำได้ทันทีโดยไม่ต้องระบุชนิดข้อมูล แต่เป็นภาษาที่ <strong>Case-sensitive</strong> (พิมพ์เล็ก-ใหญ่ มีผลต่างกัน)
+      </p>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">print(...)</span> : แสดงผลข้อมูลออกหน้าจอ Console</li>
+        <li><span style="color:var(--b);">input(...)</span> : รอรับค่าจากแป้นพิมพ์ (ข้อมูลจะเป็น String เสมอ)</li>
+        <li><span style="color:var(--b);">int(...)</span> : แปลงข้อมูลให้เป็นเลขจำนวนเต็ม (Integer)</li>
+        <li><span style="color:var(--b);">float(...)</span> : แปลงข้อมูลให้เป็นเลขทศนิยม</li>
+        <li><span style="color:var(--b);">str(...)</span> : แปลงข้อมูลให้เป็นข้อความ (String)</li>
+        <li><span style="color:var(--b);">type(...)</span> : ใช้ตรวจสอบชนิดของข้อมูล</li>
+        <li><span style="color:var(--b);">del</span> : ลบตัวแปรออกจากหน่วยความจำ</li>
+        <li><span style="color:var(--b);">True / False</span> : ค่าความจริง (Boolean) ต้องขึ้นต้นด้วยตัวพิมพ์ใหญ่</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">2. LOGIC (ตรรกะและเงื่อนไข)</h3>
+      <p style="font-family:var(--font3);font-size:.82rem;color:rgba(255,255,255,.65);margin-bottom:8px;line-height:1.6;">
+        หัวใจสำคัญคือ <strong>การย่อหน้า (Indentation)</strong> เพื่อบอกขอบเขตของบล็อกคำสั่ง แทนการใช้วงเล็บปีกกา
+      </p>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">if</span> : ถ้าเงื่อนไขเป็น "จริง" ให้ทำคำสั่งในบล็อกที่ย่อหน้า</li>
+        <li><span style="color:var(--b);">elif</span> : (Else If) ตรวจสอบเงื่อนไขถัดมา หาก if ด้านบนเป็นเท็จ</li>
+        <li><span style="color:var(--b);">else</span> : กรณีสุดท้าย จะทำงานเมื่อทุกเงื่อนไขเป็นเท็จ</li>
+        <li><span style="color:var(--b);">==</span> : เครื่องหมาย "เท่ากับ" (เปรียบเทียบค่า)</li>
+        <li><span style="color:var(--b);">!=</span> : เครื่องหมาย "ไม่เท่ากับ" (Not Equal)</li>
+        <li><span style="color:var(--b);">and / or</span> : ตรรกะ "และ" (ต้องจริงคู่) / ตรรกะ "หรือ" (จริงแค่อันเดียว)</li>
+        <li><span style="color:var(--b);">is / is not</span> : ตรวจสอบ Object หรือเช็คค่า None อย่างปลอดภัย</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">3. LOOPS (การวนซ้ำ)</h3>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">for i in ...</span> : ใช้เมื่อรู้จำนวนรอบที่แน่นอน หรือวนซ้ำสมาชิก List</li>
+        <li><span style="color:var(--b);">range(start, stop)</span> : สร้างลำดับตัวเลข (stop จะไม่ถูกรวม)</li>
+        <li><span style="color:var(--b);">while</span> : ทำงานวนซ้ำตราบใดที่เงื่อนไขยังเป็น True</li>
+        <li><span style="color:var(--b);">break</span> : สั่ง "หยุด" และออกจาก Loop ทันที</li>
+        <li><span style="color:var(--b);">continue</span> : สั่ง "ข้าม" การทำงานในรอบนั้นเพื่อไปเริ่มรอบถัดไปทันที</li>
+        <li><span style="color:var(--b);">enumerate()</span> : ฟังก์ชันช่วยวนลูปที่คืนค่าทั้ง Index และ Value</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">4. DATA STRUCTURES (โครงสร้างข้อมูล)</h3>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">List [...]</span> : เก็บแบบลำดับ แก้ไขได้</li>
+        <li><span style="color:var(--b);">.append(x) / .pop()</span> : เพิ่มข้อมูลต่อท้าย / ดึงตัวสุดท้ายออก</li>
+        <li><span style="color:var(--b);">Dict {key: value}</span> : เก็บข้อมูลแบบคู่ ไม่เรียงลำดับ เข้าถึงด้วย Key</li>
+        <li><span style="color:var(--b);">.keys() / .items()</span> : ดึง Key ทั้งหมด / ดึงทั้งคู่ Key-Value</li>
+        <li><span style="color:var(--b);">Set (...)</span> : ไม่เก็บค่าซ้ำ ใช้เมธอด .add() เพื่อเพิ่มข้อมูล</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">5. FUNC (ฟังก์ชันและโมดูล)</h3>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">def name():</span> : ประกาศสร้างฟังก์ชัน</li>
+        <li><span style="color:var(--b);">return</span> : ส่งค่าผลลัพธ์กลับและจบการทำงานทันที</li>
+        <li><span style="color:var(--b);">import ... as ...</span> : นำเข้า Module นอกมาใช้ และตั้งชื่อเล่น (Alias)</li>
+        <li><span style="color:var(--b);">*args / **kwargs</span> : รับพารามิเตอร์จำนวนมากเข้ามาเป็น Tuple หรือ Dict</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">6. OOP (การเขียนโปรแกรมเชิงวัตถุ)</h3>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">class Name:</span> : การประกาศสร้างแม่พิมพ์ (Blueprint)</li>
+        <li><span style="color:var(--b);">__init__</span> : Constructor ที่จะทำงานอัตโนมัติเมื่อสร้าง Object</li>
+        <li><span style="color:var(--b);">self</span> : ตัวแปรใช้แทน "ตัวเอง" ภายในคลาส</li>
+        <li><span style="color:var(--b);">super()</span> : เรียกใช้เมธอดจากคลาสแม่ (Inheritance)</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:20px;border-bottom:1px dashed rgba(0,255,65,.1);padding-bottom:18px;">
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--y);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--g);">7. DATABASE & FILE I/O</h3>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">sqlite3.connect()</span> : เชื่อมต่อ Database และ <span style="color:var(--b);">.execute()</span> สั่งรัน SQL</li>
+        <li><span style="color:var(--b);">.commit() / .close()</span> : บันทึกการเปลี่ยนแปลง / ปิดการเชื่อมต่อ Database</li>
+        <li><span style="color:var(--b);">open('f.txt', 'r')</span> : เปิดอ่านไฟล์ <span style="color:var(--b);">.read()</span> อ่านทั้งหมด <span style="color:var(--b);">.write()</span> เขียนข้อมูล</li>
+      </ul>
+    </div>
+
+    <div>
+      <h3 style="font-family:var(--font1);font-size:.85rem;color:var(--r);letter-spacing:3px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--r);">9. SURVIVAL (Advanced - โหดพิเศษ)</h3>
+      <ul style="list-style:none;font-family:var(--font2);font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:15px;">
+        <li><span style="color:var(--b);">Comprehension</span> : การสร้าง List ในบรรทัดเดียว [x for x in r]</li>
+        <li><span style="color:var(--b);">lambda</span> : ฟังก์ชันขนาดสั้นแบบไม่มีชื่อ</li>
+        <li><span style="color:var(--b);">yield</span> : สร้าง Generator เพื่อประหยัด Memory ลูป</li>
+        <li><span style="color:var(--b);">nonlocal</span> : เข้าถึงหรือแก้ไขตัวแปรที่อยู่ในขอบเขตชั้นนอก</li>
+        <li><span style="color:var(--b);">:= (Walrus)</span> : ทำ Assignment ภายใน Expression ไปในตัว</li>
       </ul>
     </div>
   </div>
+  
   <button class="btn btn-lg" onclick="showScene('s-menu')">[ ← BACK TO MENU ]</button>
 </div>
 </section>
@@ -269,7 +368,7 @@
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
 /* ============================================================
-   PYTHON HUNTER v4 — CLIENT JS
+   PYTHON HUNTER v4 — CLIENT JS (STABLE ROLLBACK)
    ============================================================ */
 (function(){
   const c=document.getElementById('bg-canvas'),x=c.getContext('2d');
