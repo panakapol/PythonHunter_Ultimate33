@@ -22,6 +22,7 @@ app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../client/index.
 
 const rooms = new Map();
 const players = new Map();
+const feedbackCooldown = new Map(); // เก็บเวลาล่าสุดที่ส่ง feedback
 
 function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -195,6 +196,17 @@ io.on('connection', (socket) => {
 
 socket.on('send_feedback', async ({ message }) => {
   try {
+
+    const now = Date.now();
+    const lastTime = feedbackCooldown.get(socket.id) || 0;
+
+    // ⛔ กันส่งถี่เกิน 3 วิ
+    if (now - lastTime < 3000) {
+      return socket.emit("error_msg", "ส่ง Feedback ถี่เกินไป รอ 3 วินาที");
+    }
+
+    feedbackCooldown.set(socket.id, now);
+
     console.log("WEBHOOK:", process.env.DISCORD_WEBHOOK_URL);
 
     const info = players.get(socket.id);
@@ -207,11 +219,12 @@ socket.on('send_feedback', async ({ message }) => {
     socket.emit("feedback_sent");
 
   } catch (err) {
-    console.error("Feedback error:", err.message);
+    console.error("Feedback error:", err.response?.data || err.message);
   }
 });
 
   socket.on('disconnect', () => {
+    feedbackCooldown.delete(socket.id);
     const info = players.get(socket.id); if (!info) return;
     const room = rooms.get(info.roomCode); players.delete(socket.id); if (!room) return;
     room.players.delete(socket.id);
