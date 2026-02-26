@@ -32,7 +32,6 @@ app.post('/api/feedback', async (req, res) => {
       content: `🚨 **NEW FEEDBACK: PYTHON HUNTER** 🚨\n**From:** ${name || 'Anonymous'}\n**Message:**\n>>> ${message}`
     };
 
-    // ใช้ fetch มาตรฐานของ Node.js (รองรับบน Render.com 100%)
     const response = await fetch(DISCORD_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -43,10 +42,10 @@ app.post('/api/feedback', async (req, res) => {
       res.json({ success: true });
     } else {
       console.error('Discord API Error:', response.status);
-      res.status(500).json({ error: 'Discord rejected' });
+      res.status(500).json({ error: 'Discord API Error' });
     }
   } catch (err) {
-    console.error('Webhook Error:', err);
+    console.error('Webhook Request Error:', err);
     res.status(500).json({ error: 'Failed to send' });
   }
 });
