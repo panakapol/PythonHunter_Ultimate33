@@ -200,44 +200,31 @@ socket.on('send_feedback', async (data) => {
     const now = Date.now();
     const lastTime = feedbackCooldown.get(socket.id) || 0;
 
-    // กันส่งรัวๆ
+    // ⛔ กันคนกดส่งรัวๆ
     if (now - lastTime < 3000) {
-      return socket.emit("error_msg", "ส่ง Feedback ถี่เกินไป รอ 3 วินาที");
+      return socket.emit("feedback_error", "ส่งถี่เกินไป กรุณารอ 3 วินาที");
     }
     feedbackCooldown.set(socket.id, now);
 
     // รับค่าชื่อและข้อความ
     const msg = data.message || "ไม่มีข้อความ";
-    const senderName = data.name || (players.get(socket.id) ? players.get(socket.id).name : "ไม่ระบุชื่อ");
+    const senderName = data.name || "ไม่ระบุชื่อผู้ส่ง"; 
 
-    // 1. กำหนด URL แบบในคลิปสอน (ใส่ลิงก์ของคุณตรงๆ เลย)
-    const url = "https://discord.com/api/webhooks/1476665405387837573/DnS6fCdgsh0sxt-QACOM44ZHucdeMRtjF2j-b9wXLtcVEtebPTTxbRblrrfGL9ahgveP";
+    // 🔗 กำหนด URL โดยใช้จาก Render ก่อน ถ้าไม่มีให้ใช้ที่ Hardcode ไว้
+    const url = process.env.DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1476665405387837573/DnS6fCdgsh0sxt-QACOM44ZHucdeMRtjF2j-b9wXLtcVEtebPTTxbRblrrfGL9ahgveP";
 
-    // 2. จัดเตรียมข้อมูล (เหมือนตัวแปร $POST ใน PHP)
-    const payload = {
-      username: "Python Hunter Bot", // ชื่อบอทที่จะไปโผล่ใน Discord
-      content: `📩 **FEEDBACK REPORT**\n**👤 จากผู้เล่น:** ${senderName}\n**📝 ข้อความ:** ${msg}`
-    };
-
-    // 3. ใช้ fetch ทำหน้าที่ส่งข้อมูล (เหมือน cURL ของ PHP)
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8' // เหมือน $headers ในคลิป
-      },
-      body: JSON.stringify(payload) // เหมือน json_encode ในคลิป
+    // 🚀 ใช้ axios ส่งข้อมูลเข้า Discord
+    await axios.post(url, {
+      content: `📩 **FEEDBACK REPORT**\n**👤 จาก:** ${senderName}\n**📝 ข้อความ:** ${msg}`
     });
 
-    // 4. เช็คว่า Discord ตอบกลับว่าสำเร็จไหม
-    if (response.ok) {
-      // ส่งคำสั่งกลับไปบอกหน้าเว็บว่า "เข้า Discord แล้วจริงๆ"
-      socket.emit("feedback_success"); 
-    } else {
-      console.error("ส่งเข้า Discord ไม่สำเร็จ Status:", response.status);
-    }
+    // ✅ ถ้าส่งผ่าน ให้บอกหน้าเว็บว่าสำเร็จ
+    socket.emit("feedback_success");
 
   } catch (err) {
-    console.error("เกิดข้อผิดพลาดของระบบ:", err);
+    // ❌ ถ้าส่งไม่ผ่าน (เช่น ลิงก์ผิด หรือ Discord ล่ม) ให้บอกหน้าเว็บ
+    console.error("Discord Error:", err.response?.data || err.message);
+    socket.emit("feedback_error", "เกิดข้อผิดพลาดในการส่งเข้า Discord");
   }
 });
 
