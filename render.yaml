@@ -8,5 +8,6 @@ services:
       - key: PORT
         value: 10000
       - key: DISCORD_WEBHOOK_URL
-        value: https://discord.com/api/webhooks/1476665405387837573/DnS6fCdgsh0sxt-QACOM44ZHucdeMRtjF2j-b9wXLtcVEtebPTTxbRblrrfGL9ahgveP
+        value: https://discord.com/api/webhooks/1476906843241582704/aYhqGhJsw1cvRnXPASDGN8XfNZzvDhUO_wS7WyqxjZm57-tXv23SvYGcp6Wt3y81VaYr
     autoDeploy: true
+    
