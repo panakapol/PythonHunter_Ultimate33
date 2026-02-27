@@ -195,38 +195,40 @@ io.on('connection', (socket) => {
   io.to(info.roomCode).emit('chat_msg', { name: info.name, text: msg });
 });
 
-socket.on('send_feedback', async (data) => {
-  try {
-    const now = Date.now();
-    const lastTime = feedbackCooldown.get(socket.id) || 0;
+// วางโค้ดนี้ให้อยู่เหนือ socket.on('disconnect', ... )
+  socket.on('send_feedback', async (data) => {
+    console.log("--- 📨 1. ได้รับคำสั่งส่ง Feedback จากผู้เล่น ---");
+    console.log("ข้อมูล:", data);
 
-    // ⛔ กันคนกดส่งรัวๆ
-    if (now - lastTime < 3000) {
-      return socket.emit("feedback_error", "ส่งถี่เกินไป กรุณารอ 3 วินาที");
+    try {
+      const now = Date.now();
+      const lastTime = feedbackCooldown.get(socket.id) || 0;
+
+      if (now - lastTime < 3000) {
+        return socket.emit("feedback_error", "ส่งถี่เกินไป รอ 3 วินาที");
+      }
+      feedbackCooldown.set(socket.id, now);
+
+      const msg = data?.message || "ไม่มีข้อความ";
+      const senderName = data?.name || "ไม่ระบุชื่อ";
+
+      const url = process.env.DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1476665405387837573/DnS6fCdgsh0sxt-QACOM44ZHucdeMRtjF2j-b9wXLtcVEtebPTTxbRblrrfGL9ahgveP";
+
+      console.log("--- 🚀 2. กำลังยิงข้อมูลไปที่ Discord Webhook ---");
+      
+      await axios.post(url, {
+        content: `📩 **FEEDBACK REPORT**\n**👤 จาก:** ${senderName}\n**📝 ข้อความ:** ${msg}`
+      });
+
+      console.log("--- ✅ 3. ส่งเข้า Discord สำเร็จ! ---");
+      socket.emit("feedback_success");
+
+    } catch (err) {
+      console.error("--- ❌ 4. เกิด Error ตอนส่งเข้า Discord ---");
+      console.error(err.response ? err.response.data : err.message);
+      socket.emit("feedback_error", "ระบบเซิร์ฟเวอร์ขัดข้อง: " + err.message);
     }
-    feedbackCooldown.set(socket.id, now);
-
-    // รับค่าชื่อและข้อความ
-    const msg = data.message || "ไม่มีข้อความ";
-    const senderName = data.name || "ไม่ระบุชื่อผู้ส่ง"; 
-
-    // 🔗 กำหนด URL โดยใช้จาก Render ก่อน ถ้าไม่มีให้ใช้ที่ Hardcode ไว้
-    const url = process.env.DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1476665405387837573/DnS6fCdgsh0sxt-QACOM44ZHucdeMRtjF2j-b9wXLtcVEtebPTTxbRblrrfGL9ahgveP";
-
-    // 🚀 ใช้ axios ส่งข้อมูลเข้า Discord
-    await axios.post(url, {
-      content: `📩 **FEEDBACK REPORT**\n**👤 จาก:** ${senderName}\n**📝 ข้อความ:** ${msg}`
-    });
-
-    // ✅ ถ้าส่งผ่าน ให้บอกหน้าเว็บว่าสำเร็จ
-    socket.emit("feedback_success");
-
-  } catch (err) {
-    // ❌ ถ้าส่งไม่ผ่าน (เช่น ลิงก์ผิด หรือ Discord ล่ม) ให้บอกหน้าเว็บ
-    console.error("Discord Error:", err.response?.data || err.message);
-    socket.emit("feedback_error", "เกิดข้อผิดพลาดในการส่งเข้า Discord");
-  }
-});
+  });
 
   socket.on('disconnect', () => {
     feedbackCooldown.delete(socket.id);
