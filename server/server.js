@@ -212,7 +212,7 @@ io.on('connection', (socket) => {
       const msg = data?.message || "ไม่มีข้อความ";
       const senderName = data?.name || "ไม่ระบุชื่อ";
 
-      const url = process.env.DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1476906843241582704/aYhqGhJsw1cvRnXPASDGN8XfNZzvDhUO_wS7WyqxjZm57-tXv23SvYGcp6Wt3y81VaYr";
+      const url = "https://discord.com/api/webhooks/1476911856919515208/mBLMw9ch8iYF8adXSCcTlz99TGVpMrhDaSEbHikBMCj38quhZKNv3VD0AVmXRe3AEPgd";
 
       console.log("--- 🚀 2. กำลังยิงข้อมูลไปที่ Discord Webhook ---");
       
