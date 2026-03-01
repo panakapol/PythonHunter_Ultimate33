@@ -390,8 +390,8 @@
   ต้อง Login ถึงจะส่งคะแนนได้
 ============================================================ -->
 <section id="s-ranked-lb" class="scene scroll-scene">
-<div class="mc" style="width:100%;padding:16px 0 40px;">
-  <h2 class="title" data-t="RANKED TOP 100" style="text-align:center;font-size:clamp(1.2rem,5vw,1.8rem);margin-bottom:4px;">🏅 RANKED TOP 100</h2>
+<div class="mc" style="width:100%;max-width:700px;margin:0 auto;padding:16px 20px 40px;">
+  <h2 class="title" style="text-align:center;font-size:clamp(1.2rem,5vw,1.8rem);margin-bottom:4px;">🏅 RANKED TOP 100</h2>
   <p class="sub" style="text-align:center;" id="ranked-lb-week">WEEKLY LEADERBOARD</p>
   <div style="text-align:center;font-family:var(--font3);font-size:.72rem;color:var(--y);margin-bottom:12px;" id="ranked-lb-reset">รีเซ็ตใน: --</div>
 
@@ -1755,12 +1755,14 @@ function refreshRankedTab(){
 // countdown นับถอยหลังจนถึงเวลา reset leaderboard (ทุกวันจันทร์)
 function startResetCountdown(ms, elId){
   clearInterval(rankedResetTimer);
-  let remaining=ms;
+  const deadline = Date.now() + ms;
   function update(){
-    if(remaining<=0){ document.getElementById(elId).textContent='รีเซ็ตแล้ว! (รีโหลดหน้า)'; return; }
+    const remaining = deadline - Date.now();
+    const el = document.getElementById(elId);
+    if(!el) return;
+    if(remaining<=0){ el.textContent='รีเซ็ตแล้ว! (รีโหลดหน้า)'; clearInterval(rankedResetTimer); return; }
     const h=Math.floor(remaining/3600000); const m=Math.floor((remaining%3600000)/60000); const s=Math.floor((remaining%60000)/1000);
-    document.getElementById(elId).textContent=`รีเซ็ตใน: ${h}h ${m}m ${s}s`;
-    remaining-=1000;
+    el.textContent=`รีเซ็ตใน: ${h}h ${m}m ${s}s`;
   }
   update(); rankedResetTimer=setInterval(update,1000);
 }
