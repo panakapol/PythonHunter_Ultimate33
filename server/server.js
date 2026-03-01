@@ -1,6 +1,8 @@
 // =============================================
 // PYTHON HUNTER v4 — SERVER.JS
-// Node.js + Socket.IO + Auth + Ranked Mode
+// Node.js + Socket.IO + MongoDB Auth + Ranked
+// แก้ไข: ย้าย wildcard route ไปหลัง API routes
+//        เพื่อให้ /api/... ทำงานได้ถูกต้อง
 // =============================================
 require('dotenv').config();
 const express = require('express');
@@ -19,12 +21,14 @@ const io = new Server(httpServer, {
   pingInterval: 10000
 });
 
+// =============================================
+// MIDDLEWARE — อ่าน JSON body และเสิร์ฟไฟล์ static
+// =============================================
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../client')));
-app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../client/index.html')); });
 
 // =============================================
-// MONGODB CONNECTION
+// MONGODB CONNECTION — เชื่อมต่อฐานข้อมูล
 // =============================================
 const MONGO_URI = process.env.MONGO_URI || '';
 let db = null;
@@ -36,6 +40,7 @@ async function connectDB() {
     await client.connect();
     db = client.db('pythonhunter');
     console.log('[DB] MongoDB connected');
+    // สร้าง index ให้ค้นหาเร็วขึ้น
     await db.collection('users').createIndex({ username: 1 }, { unique: true });
     await db.collection('ranked_scores').createIndex({ weekKey: 1, score: -1 });
     scheduleWeeklyReset();
@@ -46,14 +51,20 @@ async function connectDB() {
 connectDB();
 
 // =============================================
-// HELPERS
+// HELPER FUNCTIONS — ฟังก์ชันช่วยเหลือต่างๆ
 // =============================================
+
+// เข้ารหัส password ด้วย SHA256 + salt
 function hashPassword(pass) {
   return crypto.createHash('sha256').update(pass + 'ph_salt_v4').digest('hex');
 }
+
+// สร้าง token สุ่มสำหรับ session
 function makeToken() {
   return crypto.randomBytes(32).toString('hex');
 }
+
+// คำนวณ week key สำหรับ leaderboard รายสัปดาห์ (เริ่มวันจันทร์)
 function getWeekKey() {
   const now = new Date();
   const day = now.getDay();
@@ -63,6 +74,8 @@ function getWeekKey() {
   monday.setHours(0, 0, 0, 0);
   return `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`;
 }
+
+// คำนวณมิลลิวินาทีจนถึงวันจันทร์หน้า (เวลา reset leaderboard)
 function getNextMondayMs() {
   const now = new Date();
   const day = now.getDay();
@@ -72,6 +85,8 @@ function getNextMondayMs() {
   next.setHours(0, 0, 0, 0);
   return next.getTime() - Date.now();
 }
+
+// ตั้งเวลา reset leaderboard ทุกสัปดาห์วันจันทร์ 00:00
 function scheduleWeeklyReset() {
   const ms = getNextMondayMs();
   console.log(`[RESET] Next weekly reset in ${Math.round(ms/3600000)}h`);
@@ -81,9 +96,10 @@ function scheduleWeeklyReset() {
   }, ms);
 }
 
-// In-memory token store
+// เก็บ token ไว้ใน memory (ถ้า server restart ต้อง login ใหม่)
 const tokenStore = new Map();
 
+// middleware ตรวจสอบ token ก่อนเข้า API ที่ต้อง auth
 function authMiddleware(req, res, next) {
   const token = req.headers['x-auth-token'];
   if (!token) return res.status(401).json({ error: 'No token' });
@@ -94,8 +110,10 @@ function authMiddleware(req, res, next) {
 }
 
 // =============================================
-// AUTH API
+// AUTH API — ระบบสมาชิก Login / Register
 // =============================================
+
+// สมัครสมาชิกใหม่
 app.post('/api/register', async (req, res) => {
   if (!db) return res.status(503).json({ error: 'ระบบฐานข้อมูลไม่พร้อม' });
   const { username, password } = req.body;
@@ -118,6 +136,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+// เข้าสู่ระบบ
 app.post('/api/login', async (req, res) => {
   if (!db) return res.status(503).json({ error: 'ระบบฐานข้อมูลไม่พร้อม' });
   const { username, password } = req.body;
@@ -134,6 +153,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// ออกจากระบบ ลบ token
 app.post('/api/logout', (req, res) => {
   const token = req.headers['x-auth-token'];
   if (token) tokenStore.delete(token);
@@ -141,8 +161,10 @@ app.post('/api/logout', (req, res) => {
 });
 
 // =============================================
-// RANKED LEADERBOARD API
+// RANKED LEADERBOARD API — ระบบ Ranked Mode
 // =============================================
+
+// บันทึกคะแนน Ranked (เก็บเฉพาะคะแนนสูงสุดของสัปดาห์)
 app.post('/api/ranked/submit', authMiddleware, async (req, res) => {
   if (!db) return res.status(503).json({ error: 'ระบบฐานข้อมูลไม่พร้อม' });
   const { score, questionsAnswered } = req.body;
@@ -153,6 +175,7 @@ app.post('/api/ranked/submit', authMiddleware, async (req, res) => {
     const existing = await db.collection('ranked_scores').findOne({ weekKey, username });
     const isNewBest = !existing || score > existing.score;
     if (isNewBest) {
+      // อัปเดตเฉพาะถ้าคะแนนใหม่ดีกว่า
       await db.collection('ranked_scores').updateOne(
         { weekKey, username },
         { $set: { score, questionsAnswered: questionsAnswered || 0, updatedAt: new Date(), username, weekKey } },
@@ -168,6 +191,7 @@ app.post('/api/ranked/submit', authMiddleware, async (req, res) => {
   }
 });
 
+// ดึงข้อมูล leaderboard top 100 ของสัปดาห์นี้
 app.get('/api/ranked/leaderboard', async (req, res) => {
   if (!db) return res.json({ leaderboard: [], weekKey: getWeekKey(), nextReset: getNextMondayMs() });
   const weekKey = getWeekKey();
@@ -180,6 +204,7 @@ app.get('/api/ranked/leaderboard', async (req, res) => {
   }
 });
 
+// ดูอันดับของตัวเองในสัปดาห์นี้
 app.get('/api/ranked/myrank', authMiddleware, async (req, res) => {
   if (!db) return res.json({ rank: null, score: 0 });
   const weekKey = getWeekKey();
@@ -195,47 +220,72 @@ app.get('/api/ranked/myrank', authMiddleware, async (req, res) => {
 });
 
 // =============================================
-// MULTIPLAYER SOCKET.IO (เหมือนเดิมทุกอย่าง)
+// WILDCARD ROUTE — ต้องอยู่หลัง API routes ทั้งหมด!
+// ถ้าวางก่อนจะทำให้ /api/* ได้รับ HTML แทน JSON
 // =============================================
-const rooms = new Map();
-const players = new Map();
-const feedbackCooldown = new Map();
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/index.html'));
+});
 
+// =============================================
+// MULTIPLAYER SOCKET.IO — ระบบเล่นหลายคน
+// =============================================
+const rooms = new Map();   // เก็บข้อมูลห้องทั้งหมด
+const players = new Map(); // เก็บข้อมูลผู้เล่นแต่ละ socket
+const feedbackCooldown = new Map(); // ป้องกัน feedback spam
+
+// สุ่มรหัสห้อง 5 ตัวอักษรที่ไม่ซ้ำกัน
 function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code;
   do { code = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join(''); } while (rooms.has(code));
   return code;
 }
+
+// เรียงคำถามตาม level (ง่าย→ยาก) แล้วสุ่มภายใน level เดียวกัน
 function sortAndShuffleByLevel(pool) {
   const grouped = {};
   pool.forEach(q => { if (!grouped[q.level]) grouped[q.level] = []; grouped[q.level].push(q); });
   let finalPool = [];
   Object.keys(grouped).sort((a, b) => a - b).forEach(lvl => {
     let arr = grouped[lvl];
+    // Fisher-Yates shuffle ภายใน level เดียวกัน
     for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
     finalPool = finalPool.concat(arr);
   });
   return finalPool;
 }
+
 const QUESTIONS = require('./data/questions');
+
+// เลือกคำถามตาม mode และจัดเรียง
 function getQuestions(mode) {
   let pool = mode === 'SURVIVAL' ? QUESTIONS.filter(q => q.level >= 6) : QUESTIONS.filter(q => q.mode === mode);
   if (!pool.length) pool = QUESTIONS;
   return sortAndShuffleByLevel(pool);
 }
+
+// แปลง question object เป็นรูปแบบที่ส่งไป client (ไม่ส่ง answer)
 function serializeQuestion(q) { if (!q) return null; return { id: q.id, text: q.text, code: q.code, mode: q.mode, level: q.level }; }
+
+// แปลง room เป็นรูปแบบที่ส่งไป client
 function serializeRoom(room) {
   const playerList = [];
   room.players.forEach(p => { playerList.push({ socketId: p.socketId, name: p.name, score: p.score, hp: p.hp, ready: p.ready, done: p.done, combo: p.combo || 0 }); });
   return { code: room.code, hostId: room.hostId, mode: room.mode, timeLimit: room.timeLimit, status: room.status, players: playerList.sort((a, b) => b.score - a.score) };
 }
+
+// สร้าง scoreboard เรียงตามคะแนน
 function getScoreboard(room) {
   const arr = [];
   room.players.forEach(p => { arr.push({ socketId: p.socketId, name: p.name, score: p.score, hp: p.hp, done: p.done, rank: p.rank, combo: p.combo || 0 }); });
   return arr.sort((a, b) => b.score - a.score);
 }
+
+// นับจำนวนผู้เล่นที่เล่นเสร็จแล้ว (HP หมดหรือเสร็จ)
 function countDone(room) { let c = 0; room.players.forEach(p => { if (p.done) c++; }); return c; }
+
+// เริ่ม timer countdown ส่ง tick ทุกวินาที
 function startRoomTimer(room, roomCode) {
   clearRoomTimer(room);
   room.timerInterval = setInterval(() => {
@@ -243,27 +293,37 @@ function startRoomTimer(room, roomCode) {
     if (room.globalTimer <= 0) { clearRoomTimer(room); endGame(room, roomCode, 'timeout'); }
   }, 1000);
 }
+
+// หยุด timer
 function clearRoomTimer(room) { if (room.timerInterval) { clearInterval(room.timerInterval); room.timerInterval = null; } }
+
+// ตรวจสอบว่าทุกคนเล่นเสร็จหรือยัง
 function checkAllDone(room, roomCode) {
   let allDone = true; room.players.forEach(p => { if (!p.done) allDone = false; });
   if (allDone && room.status === 'playing') { clearRoomTimer(room); endGame(room, roomCode, 'all_done'); }
 }
+
+// จบเกม ส่ง scoreboard และ reset ห้องหลัง 2 วินาที
 function endGame(room, roomCode, reason) {
   if (room.status === 'ended') return; room.status = 'ended';
   const scoreboard = getScoreboard(room);
   scoreboard.forEach((p, i) => { const rp = room.players.get(p.socketId); if (rp && !rp.done) rp.rank = i + 1; });
   io.to(roomCode).emit('game_ended', { scoreboard, reason });
+  // reset ห้องกลับเป็น waiting หลัง 2 วินาที
   setTimeout(() => {
     if (rooms.has(roomCode)) { room.status = 'waiting'; room.players.forEach(p => { p.ready = false; p.done = false; }); io.to(roomCode).emit('room_update', serializeRoom(room)); }
   }, 2000);
+  // ลบห้องที่ไม่มีคนอยู่หลัง 15 นาที
   setTimeout(() => {
     if (rooms.has(roomCode) && rooms.get(roomCode).status === 'waiting' && rooms.get(roomCode).players.size === 0) { clearRoomTimer(room); rooms.delete(roomCode); }
   }, 15 * 60 * 1000);
 }
 
+// จัดการ Socket.IO events ทั้งหมด
 io.on('connection', (socket) => {
   console.log(`[CONNECT] ${socket.id}`);
 
+  // สร้างห้องใหม่
   socket.on('create_room', ({ playerName, mode, timeLimit }) => {
     const code = generateRoomCode(); const tl = parseInt(timeLimit) || 60; const itemsMap = { 60: 1, 120: 2, 180: 3 };
     const room = { code, hostId: socket.id, mode: mode || 'BASICS', timeLimit: tl, defaultItems: itemsMap[tl] || 1, status: 'waiting', players: new Map(), questions: [], questionIndex: 0, startTime: null, timerInterval: null, globalTimer: tl };
@@ -274,6 +334,7 @@ io.on('connection', (socket) => {
     socket.emit('room_update', serializeRoom(room));
   });
 
+  // เข้าร่วมห้องที่มีอยู่
   socket.on('join_room', ({ playerName, roomCode }) => {
     const code = roomCode?.toUpperCase().trim(); const room = rooms.get(code);
     if (!room) return socket.emit('error_msg', 'ไม่พบห้อง — ตรวจสอบรหัสอีกครั้ง');
@@ -287,6 +348,7 @@ io.on('connection', (socket) => {
     io.to(code).emit('chat_msg', { system: true, text: `${player.name} เข้าร่วมห้อง!` });
   });
 
+  // กด Ready / ยกเลิก Ready
   socket.on('player_ready', () => {
     const info = players.get(socket.id); if (!info) return;
     const room = rooms.get(info.roomCode); if (!room || room.status !== 'waiting') return;
@@ -295,6 +357,7 @@ io.on('connection', (socket) => {
     io.to(info.roomCode).emit('room_update', serializeRoom(room));
   });
 
+  // Host กด Start Game
   socket.on('start_game', () => {
     const info = players.get(socket.id); if (!info) return;
     const room = rooms.get(info.roomCode); if (!room || room.hostId !== socket.id) return;
@@ -306,6 +369,7 @@ io.on('connection', (socket) => {
     startRoomTimer(room, info.roomCode);
   });
 
+  // ส่งคำตอบ ตรวจสอบและให้คะแนน
   socket.on('submit_answer', ({ answer }) => {
     const info = players.get(socket.id); if (!info) return;
     const room = rooms.get(info.roomCode); if (!room || room.status !== 'playing') return;
@@ -315,6 +379,7 @@ io.on('connection', (socket) => {
     const correct = question.ans.toLowerCase().trim(); const given = (answer || '').toLowerCase().trim();
     if (given === correct) {
       player.combo = (player.combo || 0) + 1;
+      // คะแนนพื้นฐาน + โบนัส combo
       const earned = 150 + (player.combo >= 5 ? 75 : player.combo >= 3 ? 50 : 0);
       player.score += earned; player.questionIndex = (qIdx + 1) % room.questions.length;
       socket.emit('answer_result', { correct: true, earned, combo: player.combo, score: player.score, timeBonusGiven: player.combo % 3 === 0, nextQuestion: serializeQuestion(room.questions[player.questionIndex]) });
@@ -326,6 +391,7 @@ io.on('connection', (socket) => {
     io.to(info.roomCode).emit('score_update', getScoreboard(room)); checkAllDone(room, info.roomCode);
   });
 
+  // ใช้ไอเทม (hint / potion / skip)
   socket.on('use_item', ({ item }) => {
     const info = players.get(socket.id); if (!info) return;
     const room = rooms.get(info.roomCode); if (!room || room.status !== 'playing') return;
@@ -346,12 +412,14 @@ io.on('connection', (socket) => {
     io.to(info.roomCode).emit('score_update', getScoreboard(room));
   });
 
+  // ส่งข้อความแชทในห้อง
   socket.on('send_chat', ({ text }) => {
     const info = players.get(socket.id); if (!info || !text) return;
     const msg = text.trim().slice(0, 80); if (!msg) return;
     io.to(info.roomCode).emit('chat_msg', { name: info.name, text: msg });
   });
 
+  // ส่ง feedback ไปยัง Discord webhook
   socket.on('send_feedback', async (data) => {
     try {
       const now = Date.now(); const lastTime = feedbackCooldown.get(socket.id) || 0;
@@ -364,18 +432,24 @@ io.on('connection', (socket) => {
     } catch (err) { socket.emit('feedback_error', 'ระบบเซิร์ฟเวอร์ขัดข้อง: ' + err.message); }
   });
 
+  // ผู้เล่น disconnect — ล้างข้อมูลออกจากห้อง
   socket.on('disconnect', () => {
     feedbackCooldown.delete(socket.id);
     const info = players.get(socket.id); if (!info) return;
     const room = rooms.get(info.roomCode); players.delete(socket.id); if (!room) return;
     room.players.delete(socket.id);
     io.to(info.roomCode).emit('chat_msg', { system: true, text: `${info.name} ออกจากห้อง` });
+    // ถ้าไม่มีคนเหลือ ลบห้อง
     if (room.players.size === 0) { clearRoomTimer(room); rooms.delete(info.roomCode); return; }
+    // ถ้า host ออก ส่งต่อ host ให้คนถัดไป
     if (room.hostId === socket.id) { room.hostId = room.players.keys().next().value; io.to(room.hostId).emit('you_are_host'); }
     io.to(info.roomCode).emit('room_update', serializeRoom(room)); checkAllDone(room, info.roomCode);
   });
 });
 
+// =============================================
+// START SERVER — เริ่มฟัง port
+// =============================================
 const PORT = process.env.PORT || 10000;
 httpServer.listen(PORT, () => {
   console.log(`\n🐍 PYTHON HUNTER v4 SERVER`);
