@@ -131,6 +131,9 @@
       <div class="row" style="margin-top:8px;">
         <button class="btn btn-blue" onclick="showScene('s-manual')">[ MANUAL ]</button>
       </div>
+      <div class="row" style="margin-top:8px;">
+        <button class="btn" id="feedbackBtn" style="width:100%;border-color:rgba(0,255,65,.4);color:var(--g);background:rgba(0,255,65,.08);font-size:.7rem;letter-spacing:2px;" onclick="document.getElementById('feedbackModal').style.display='flex'">[ FEEDBACK ]</button>
+      </div>
     </div>
 
     <div id="tab-multi" style="display:none;">
@@ -1818,8 +1821,7 @@ updateChampion();
 
 
 </script>
-<!-- ===== FEEDBACK BUTTON ===== -->
-<button id="feedbackBtn">Feedback</button>
+
 
 <!-- ===== FEEDBACK MODAL ===== -->
 <div id="feedbackModal" class="fb-modal">
@@ -1838,31 +1840,7 @@ updateChampion();
 </div>
 
 <style>
-#feedbackBtn {
-  position: fixed;
-  bottom: 25px;
-  right: 25px;
-  padding: 10px 20px;
-  font-size: 13px;
-  font-weight: bold;
-  font-family: var(--font3);
-  letter-spacing: 2px;
-  border-radius: 4px;
-  border: 1px solid rgba(0,255,65,.4);
-  cursor: pointer;
-  background: rgba(0,255,65,.08);
-  color: var(--g);
-  box-shadow: 0 0 12px rgba(0,255,65,.15);
-  transition: 0.3s;
-  z-index: 9999;
-  text-transform: uppercase;
-}
 
-#feedbackBtn:hover {
-  background: rgba(0,255,65,.18);
-  box-shadow: 0 0 20px rgba(0,255,65,.35);
-  transform: scale(1.03);
-}
 
 .fb-modal {
   display: none;
@@ -1947,15 +1925,12 @@ updateChampion();
   const socket = io();
 
   // 2. ดึงปุ่มต่างๆ มาใช้งาน (ประกาศแค่รอบเดียว)
-  const feedbackBtn = document.getElementById("feedbackBtn");
+  
   const feedbackModal = document.getElementById("feedbackModal");
   const cancelBtn = document.querySelector(".fb-cancel");
   const sendBtn = document.querySelector(".fb-send");
 
-  // เปิดหน้าต่าง
-  feedbackBtn.onclick = () => {
-    feedbackModal.style.display = "flex";
-  };
+
 
   // ปิดหน้าต่าง
   cancelBtn.onclick = () => {
