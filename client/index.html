@@ -420,7 +420,7 @@
   ไม่ต้องโหลดจาก server — ข้อมูลอยู่ใน HTML ทั้งหมด
 ============================================================ -->
 <section id="s-manual" class="scene scroll-scene">
-<div class="mc" style="padding:20px 0 40px;width:100%;">
+<div class="mc" style="padding:20px 20px 40px;width:100%;max-width:700px;margin:0 auto;">
   <h2 class="title" data-t="PYTHON MANUAL" style="text-align:center;margin-bottom:14px;font-size:clamp(1.4rem,5vw,2rem);">PYTHON MANUAL</h2>
   
   <div class="panel" style="margin-bottom:12px;">
@@ -683,6 +683,10 @@ function floatDmg(msg,type){
 function showScene(id){
   document.querySelectorAll('.scene').forEach(s=>s.classList.remove('on'));
   const t=document.getElementById(id); t.classList.add('on'); t.scrollTop=0;
+  // ซ่อน feedback ตอนเล่นเกม/ล็อบบี้ แสดงเฉพาะหน้าเมนูและ manual
+  const showFbOn=['s-menu','s-manual','s-lb','s-ranked-lb','s-auth'];
+  const fb=document.getElementById('feedbackBtn');
+  if(fb) fb.style.display=showFbOn.includes(id)?'block':'none';
 }
 function addChat(box,data){
   const d=document.createElement('div'); d.className=data.system?'chat-msg sys':'chat-msg';
@@ -1838,22 +1842,26 @@ updateChampion();
   position: fixed;
   bottom: 25px;
   right: 25px;
-  padding: 14px 22px;
-  font-size: 16px;
+  padding: 10px 20px;
+  font-size: 13px;
   font-weight: bold;
-  border-radius: 50px;
-  border: none;
+  font-family: var(--font3);
+  letter-spacing: 2px;
+  border-radius: 4px;
+  border: 1px solid rgba(0,255,65,.4);
   cursor: pointer;
-  background: linear-gradient(135deg, #4e73df, #1cc88a);
-  color: white;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  background: rgba(0,255,65,.08);
+  color: var(--g);
+  box-shadow: 0 0 12px rgba(0,255,65,.15);
   transition: 0.3s;
   z-index: 9999;
+  text-transform: uppercase;
 }
 
 #feedbackBtn:hover {
-  transform: scale(1.05);
-  opacity: 0.9;
+  background: rgba(0,255,65,.18);
+  box-shadow: 0 0 20px rgba(0,255,65,.35);
+  transform: scale(1.03);
 }
 
 .fb-modal {
