@@ -1093,9 +1093,13 @@ const G={
           headers:{'Content-Type':'application/json','x-auth-token':AUTH.token},
           body:JSON.stringify({score:this.score, questionsAnswered:this.rankedQuestionsAnswered})
         });
-        const data=await res.json();
-        if(data.isNewBest) toast('🏆 คะแนนสูงสุดใหม่ของสัปดาห์!','y');
-        else toast('บันทึกคะแนนแล้ว!','b');
+        if(res.status===401){
+          AUTH.clear(); toast('⚠️ Session หมดอายุ — กรุณา Login ใหม่เพื่อบันทึกคะแนน','r');
+        } else {
+          const data=await res.json();
+          if(data.isNewBest) toast('🏆 คะแนนสูงสุดใหม่ของสัปดาห์!','y');
+          else toast('บันทึกคะแนนแล้ว!','b');
+        }
       }catch(e){ toast('บันทึกคะแนนไม่สำเร็จ','r'); }
     }
 
@@ -1724,7 +1728,13 @@ function enterGame(){
 
 // ตรวจสอบ auto-login เมื่อโหลดหน้าใหม่ — ถ้ายังมี token ข้ามหน้า Auth ไปเลย
 (function checkAutoLogin(){
-  if(AUTH.isLoggedIn()){ enterGame(); }
+  if(AUTH.isLoggedIn()){ 
+    // ตรวจสอบว่า token ยังใช้ได้กับ server ไหม (กัน server restart ทำให้ token หาย)
+    fetch('/api/verify', {headers:{'x-auth-token':AUTH.token}})
+      .then(r=>r.json())
+      .then(d=>{ if(d.valid){ enterGame(); } else { AUTH.clear(); showScene('s-auth'); toast('Session หมดอายุ กรุณา Login ใหม่','r'); } })
+      .catch(()=>{ enterGame(); }); // ถ้า network error ให้ผ่านไปก่อน
+  }
   // else stay on s-auth (already on)
 })();
 

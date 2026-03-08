@@ -43,6 +43,8 @@ async function connectDB() {
     // สร้าง index ให้ค้นหาเร็วขึ้น
     await db.collection('users').createIndex({ username: 1 }, { unique: true });
     await db.collection('ranked_scores').createIndex({ weekKey: 1, score: -1 });
+    await db.collection('sessions').createIndex({ token: 1 }, { unique: true });
+    await db.collection('sessions').createIndex({ createdAt: 1 }, { expireAfterSeconds: 30 * 24 * 3600 }); // auto-expire 30 วัน
     scheduleWeeklyReset();
   } catch (e) {
     console.error('[DB] Connect failed:', e.message);
@@ -96,15 +98,43 @@ function scheduleWeeklyReset() {
   }, ms);
 }
 
-// เก็บ token ไว้ใน memory (ถ้า server restart ต้อง login ใหม่)
+// เก็บ token ใน memory (cache) + MongoDB (persistent)
 const tokenStore = new Map();
 
-// middleware ตรวจสอบ token ก่อนเข้า API ที่ต้อง auth
-function authMiddleware(req, res, next) {
+// บันทึก token ลง MongoDB ด้วย (เพื่อให้รอดจาก server restart)
+async function saveToken(token, username) {
+  tokenStore.set(token, { username });
+  if (db) {
+    try {
+      await db.collection('sessions').updateOne(
+        { token },
+        { $set: { token, username, createdAt: new Date() } },
+        { upsert: true }
+      );
+    } catch(e) { /* ignore */ }
+  }
+}
+
+// ลบ token ออกจากทั้ง memory และ MongoDB
+async function deleteToken(token) {
+  tokenStore.delete(token);
+  if (db) {
+    try { await db.collection('sessions').deleteOne({ token }); } catch(e) { /* ignore */ }
+  }
+}
+
+// middleware ตรวจสอบ token — ดูใน memory ก่อน ถ้าไม่มีดึงจาก MongoDB
+async function authMiddleware(req, res, next) {
   const token = req.headers['x-auth-token'];
   if (!token) return res.status(401).json({ error: 'No token' });
-  const session = tokenStore.get(token);
-  if (!session) return res.status(401).json({ error: 'Invalid token' });
+  let session = tokenStore.get(token);
+  if (!session && db) {
+    try {
+      const doc = await db.collection('sessions').findOne({ token });
+      if (doc) { tokenStore.set(token, { username: doc.username }); session = { username: doc.username }; }
+    } catch(e) { /* ignore */ }
+  }
+  if (!session) return res.status(401).json({ error: 'Invalid token — please login again' });
   req.user = session;
   next();
 }
@@ -128,7 +158,7 @@ app.post('/api/register', async (req, res) => {
       createdAt: new Date(), totalGames: 0, bestScore: 0
     });
     const token = makeToken();
-    tokenStore.set(token, { username: clean });
+    await saveToken(token, clean);
     res.json({ success: true, token, username: clean });
   } catch (e) {
     if (e.code === 11000) return res.status(400).json({ error: 'Username นี้มีคนใช้แล้ว' });
@@ -146,17 +176,22 @@ app.post('/api/login', async (req, res) => {
     if (!user || user.password !== hashPassword(password))
       return res.status(401).json({ error: 'Username หรือ Password ไม่ถูกต้อง' });
     const token = makeToken();
-    tokenStore.set(token, { username: user.username });
+    await saveToken(token, user.username);
     res.json({ success: true, token, username: user.username });
   } catch (e) {
     res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
   }
 });
 
+// ตรวจสอบว่า token ยังใช้ได้ไหม (client เรียกตอน startup)
+app.get('/api/verify', authMiddleware, (req, res) => {
+  res.json({ valid: true, username: req.user.username });
+});
+
 // ออกจากระบบ ลบ token
 app.post('/api/logout', (req, res) => {
   const token = req.headers['x-auth-token'];
-  if (token) tokenStore.delete(token);
+  if (token) deleteToken(token);
   res.json({ success: true });
 });
 
